@@ -1,1 +1,1 @@
-# my-movie-frontend
+# MyMovie - Frontend
