@@ -2,8 +2,9 @@
   "name": "my-movie",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.15.1",
   "scripts": {
-    "eas-build-pre-install": "./eas-build-pre-install.sh",
+    "eas-build-pre-install": "corepack enable",
     "start": "expo start",
     "start-tunnel": "expo start --tunnel --reset-cache",
     "reset-project": "node ./scripts/reset-project.js",
