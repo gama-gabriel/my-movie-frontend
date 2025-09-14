@@ -3,6 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
+    "eas-build-pre-install": "./eas-build-pre-install.sh",
     "start": "expo start",
     "start-tunnel": "expo start --tunnel --reset-cache",
     "reset-project": "node ./scripts/reset-project.js",
