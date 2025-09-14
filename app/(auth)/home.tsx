@@ -19,7 +19,7 @@ export default function Page() {
   return (
     <SafeAreaView edges={['top']} className='flex-1 items-center justify-start gap-4 p-4 bg-black'>
       <View className='flex-1 items-center justify-center gap-4 py-4 bg-black'>
-        <Heading size='4xl'>MyM-ovie</Heading>
+        <Heading size='4xl'>MyMovie</Heading>
       </View>
 
       <View className='items-center justify-center gap-6 py-12 w-full'>
