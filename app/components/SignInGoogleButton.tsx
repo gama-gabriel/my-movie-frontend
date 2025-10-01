@@ -2,7 +2,6 @@ import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { GoogleIcon } from '@/components/ui/icon'
 import { useSSO } from '@clerk/clerk-expo'
 import * as AuthSession from 'expo-auth-session'
-import { useRouter } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect } from 'react'
 
@@ -22,7 +21,6 @@ export const useWarmUpBrowser = () => {
 WebBrowser.maybeCompleteAuthSession()
 
 export default function Page() {
-  const router = useRouter();
   useWarmUpBrowser()
 
   // Use the `useSSO()` hook to access the `startSSOFlow()` method
