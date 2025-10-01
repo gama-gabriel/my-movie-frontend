@@ -177,7 +177,7 @@ export function ImageGallery() {
             </View>
           </>
         )}
-        onEndReachedThreshold={0.40}
+        onEndReachedThreshold={0.60}
         onEndReached={handleEndReached}
         ListFooterComponent={
           isFetchingNextPage ? (

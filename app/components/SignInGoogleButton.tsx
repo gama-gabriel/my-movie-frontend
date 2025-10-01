@@ -34,7 +34,7 @@ export default function Page() {
         // For web, defaults to current path
         // For native, you must pass a scheme, like AuthSession.makeRedirectUri({ scheme, path })
         // For more info, see https://docs.expo.dev/versions/latest/sdk/auth-session/#authsessionmakeredirecturioptions
-        redirectUrl: AuthSession.makeRedirectUri({native: 'mymovie://(home)/' }),
+        redirectUrl: AuthSession.makeRedirectUri({native: 'mymovie://(onboarding)/' }),
       })
 
       // If sign in was successful, set the active session
