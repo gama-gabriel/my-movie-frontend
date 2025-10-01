@@ -48,11 +48,7 @@ const HeaderList = () => (
 )
 
 const fetchImages = async ({ pageParam = 0 }): Promise<Pagina> => {
-  try {
     const response = await fetch(`https://mymovie-nhhq.onrender.com/media/media?page=${pageParam}&page_size=10`);
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
     const data: APIResponse = await response.json();
 
     // Preload images for smoother experience
@@ -64,17 +60,15 @@ const fetchImages = async ({ pageParam = 0 }): Promise<Pagina> => {
     return {
       media: data.media,
       nextPage: data.media.length > 0 ? pageParam + 1 : undefined
-    };
-  } catch (error) {
-    console.error('Error fetching images:', error);
-    throw error;
-  }
-};
+    }
+}
 
 
 export function ImageGallery() {
   const {
     data,
+    status,
+    error,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -82,7 +76,7 @@ export function ImageGallery() {
     isRefetching,
   } = useInfiniteQuery({
     queryKey: ['images'],
-    initialPageParam: 1,
+    initialPageParam: 0,
     queryFn: fetchImages,
     getNextPageParam: (lastPage) => lastPage.nextPage,
   });
@@ -95,12 +89,34 @@ export function ImageGallery() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleEndReached = useCallback(
     debounce(() => {
+      if (error) return;
       if (hasNextPage && !isFetchingNextPage) {
         fetchNextPage();
       }
     }, 300),
     [hasNextPage, isFetchingNextPage, fetchNextPage]
   );
+
+  if (status === 'pending') {
+      return (
+        <SafeAreaView edges={["bottom"]} className='flex-1 w-full bg-black'>
+          <View className='flex-1 items-center justify-center'>
+            <ActivityIndicator size="large" color="blue" className='text-primary-light' />
+          </View>
+        </SafeAreaView>
+      );
+  }
+
+  if (status === 'error') {
+    console.error('Error fetching images:', error);
+    return (
+      <SafeAreaView edges={["bottom"]} className='flex-1 w-full bg-black'>
+        <View className='flex-1 items-center justify-center'>
+          <Text className='text-white'>Erro ao carregar as imagens.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const blurhash = 'B0JH:g-;fQ_3fQfQ'
 
@@ -166,8 +182,8 @@ export function ImageGallery() {
         ListFooterComponent={
           isFetchingNextPage ? (
             <ActivityIndicator
-              color="blue"
               size="small"
+              className='text-primary-light'
               style={{ marginBottom: 5 }}
             />
           ) : null
