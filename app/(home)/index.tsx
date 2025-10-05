@@ -48,19 +48,19 @@ const HeaderList = () => (
 )
 
 const fetchImages = async ({ pageParam = 0 }): Promise<Pagina> => {
-    const response = await fetch(`https://mymovie-nhhq.onrender.com/media/media?page=${pageParam}&page_size=10`);
-    const data: APIResponse = await response.json();
+  const response = await fetch(`https://mymovie-nhhq.onrender.com/media/media?page=${pageParam}&page_size=10`);
+  const data: APIResponse = await response.json();
 
-    // Preload images for smoother experience
-    if (data.media && data.media.length > 0) {
-      const backdropUrls = data.media.map((item: Media) => item.backdrop_path);
-      Image.prefetch([...backdropUrls]);
-    }
+  // Preload images for smoother experience
+  if (data.media && data.media.length > 0) {
+    const backdropUrls = data.media.map((item: Media) => item.backdrop_path);
+    Image.prefetch([...backdropUrls]);
+  }
 
-    return {
-      media: data.media,
-      nextPage: data.media.length > 0 ? pageParam + 1 : undefined
-    }
+  return {
+    media: data.media,
+    nextPage: data.media.length > 0 ? pageParam + 1 : undefined
+  }
 }
 
 
@@ -89,22 +89,23 @@ export function ImageGallery() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleEndReached = useCallback(
     debounce(() => {
+      console.log("end reached")
       if (error) return;
       if (hasNextPage && !isFetchingNextPage) {
         fetchNextPage();
       }
-    }, 300),
+    }, 200),
     [hasNextPage, isFetchingNextPage, fetchNextPage]
   );
 
   if (status === 'pending') {
-      return (
-        <SafeAreaView edges={["bottom"]} className='flex-1 w-full bg-black'>
-          <View className='flex-1 items-center justify-center'>
-            <ActivityIndicator size="large" color="blue" className='text-primary-light' />
-          </View>
-        </SafeAreaView>
-      );
+    return (
+      <SafeAreaView edges={["bottom"]} className='flex-1 w-full bg-black'>
+        <View className='flex-1 items-center justify-center'>
+          <ActivityIndicator size="large" color="blue" className='text-primary-light' />
+        </View>
+      </SafeAreaView>
+    );
   }
 
   if (status === 'error') {
@@ -125,6 +126,10 @@ export function ImageGallery() {
     <SafeAreaView edges={["bottom"]} className='flex-1 w-full bg-black'>
 
       <FlashList
+        onLayout={(event) => {
+          const { width, height, x, y } = event.nativeEvent.layout;
+          console.log('Size:', { width, height, x, y });
+        }}
         ListHeaderComponent={HeaderList}
         className='flex flex-col gap-2 w-full'
         data={images}
@@ -136,8 +141,8 @@ export function ImageGallery() {
             onRefresh={refetch}
           />
         }
-        estimatedItemSize={200}
-        drawDistance={600}
+        estimatedItemSize={800}
+        drawDistance={1200}
         renderItem={({ item }) => (
           <>
             <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
@@ -177,7 +182,7 @@ export function ImageGallery() {
             </View>
           </>
         )}
-        onEndReachedThreshold={0.60}
+        onEndReachedThreshold={1.5}
         onEndReached={handleEndReached}
         ListFooterComponent={
           isFetchingNextPage ? (
