@@ -32,9 +32,6 @@ interface Pagina {
 
 const HeaderList = () => (
   <>
-    {/* espaço do header */}
-    <View className='h-20 bg-black'></View>
-
     <View className='w-full flex flex-row items-center justify-start gap-4 bg-black px-4 pb-2'>
       <Heading className="m-0 text-xl font-bold text-white w-fit">
         Recomendado para você
@@ -122,79 +119,79 @@ export function ImageGallery() {
   const blurhash = 'B0JH:g-;fQ_3fQfQ'
 
   return (
+    <FlashList
+      contentContainerClassName="pt-20" 
+      onLayout={(event) => {
+        const { width, height, x, y } = event.nativeEvent.layout;
+        console.log('Size:', { width, height, x, y });
+      }}
+      ListHeaderComponent={HeaderList}
+      className='flex flex-col gap-2 w-full'
+      data={images}
+      keyExtractor={(item) => item.id.toString()}
+      refreshControl={
+        <RefreshControl
+          progressBackgroundColor={'#343037'}
+          colors={['white']}
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          progressViewOffset={80}
+        />
+      }
+      estimatedItemSize={800}
+      drawDistance={1200}
+      renderItem={({ item }) => (
+        <>
+          <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
+            <Image
+              source={{ uri: `https://image.tmdb.org/t/p/w300/${item.backdrop_path}` }}
+              style={{ width: "100%", height: 200, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+              cachePolicy="memory-disk"
+              recyclingKey={item.id.toString()} // Fix image flickering
+              contentFit="cover" // Ensure smooth rendering
+              placeholder={{ blurhash }} // Add placeholder
+              transition={500}
 
-    <SafeAreaView edges={["bottom"]} className='flex-1 w-full bg-black'>
-
-      <FlashList
-        onLayout={(event) => {
-          const { width, height, x, y } = event.nativeEvent.layout;
-          console.log('Size:', { width, height, x, y });
-        }}
-        ListHeaderComponent={HeaderList}
-        className='flex flex-col gap-2 w-full'
-        data={images}
-        keyExtractor={(item) => item.id.toString()}
-        refreshControl={
-          <RefreshControl
-            tintColor={'blue'}
-            refreshing={isRefetching}
-            onRefresh={refetch}
-          />
-        }
-        estimatedItemSize={800}
-        drawDistance={1200}
-        renderItem={({ item }) => (
-          <>
-            <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
-              <Image
-                source={{ uri: `https://image.tmdb.org/t/p/w300/${item.backdrop_path}` }}
-                style={{ width: "100%", height: 200, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
-                cachePolicy="memory-disk"
-                recyclingKey={item.id.toString()} // Fix image flickering
-                contentFit="cover" // Ensure smooth rendering
-                placeholder={{ blurhash }} // Add placeholder
-                transition={500}
-
-              />
-              <View className='p-4 gap-2 bg-white/5'>
-                <Text className='text-white font-bold m-0'>{item.title}</Text>
-                <View className='flex flex-row justify-between items-center gap-4'>
-                  <Text className='text-neutral-500'>{item.release_date.slice(0, 4)}</Text>
-                  {item.is_movie ? (
-                    <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
-                      <BadgeText>Filme</BadgeText>
-                    </Badge>
-                  ) : (
-                    <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
-                      <BadgeText>Série</BadgeText>
-                    </Badge>
-                  )}
-                </View>
-
-                <View className='flex flex-row justify-end mt-2'>
-                  <Button className='w-full bg-transparent border border-neutral-500 data-[active=true]:bg-neutral-700'>
-                    <ButtonIcon as={Star} color="#dddddd" ></ButtonIcon>
-                    <ButtonText className='px-2'>Avaliar</ButtonText>
-                  </Button>
-                </View>
-
-              </View>
-            </View>
-          </>
-        )}
-        onEndReachedThreshold={1.5}
-        onEndReached={handleEndReached}
-        ListFooterComponent={
-          isFetchingNextPage ? (
-            <ActivityIndicator
-              size="small"
-              className='text-primary-light'
-              style={{ marginBottom: 5 }}
             />
-          ) : null
-        }
-      />
-    </SafeAreaView>
+            <View className='p-4 gap-2 bg-white/5'>
+              <Text className='text-white font-bold m-0'>{item.title}</Text>
+              <View className='flex flex-row justify-between items-center gap-4'>
+                <Text className='text-neutral-500'>{item.release_date.slice(0, 4)}</Text>
+                {item.is_movie ? (
+                  <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
+                    <BadgeText>Filme</BadgeText>
+                  </Badge>
+                ) : (
+                  <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
+                    <BadgeText>Série</BadgeText>
+                  </Badge>
+                )}
+              </View>
+
+              <View className='flex flex-row justify-end mt-2'>
+                <Button className='w-full bg-transparent border border-neutral-500 data-[active=true]:bg-neutral-700'>
+                  <ButtonIcon as={Star} color="#dddddd" ></ButtonIcon>
+                  <ButtonText className='px-2'>Avaliar</ButtonText>
+                </Button>
+              </View>
+
+            </View>
+          </View>
+        </>
+      )}
+      onEndReachedThreshold={1.5}
+      onEndReached={handleEndReached}
+      ListFooterComponent={
+        isFetchingNextPage ? (
+          <ActivityIndicator
+            size="small"
+            className='text-primary-light'
+            style={{ marginBottom: 20 }}
+          />
+        ) : null
+      }
+    />
+
   );
 }
 
@@ -211,7 +208,5 @@ export default function Page() {
         </View>
       </SignedOut>
     </>
-
-
   )
 }
