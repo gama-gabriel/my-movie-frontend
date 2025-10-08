@@ -1,0 +1,10 @@
+export const primary = '#9D06FF';
+export const primaryLight = '#DF9EFF';
+export const primaryDark = '#54038A';
+export const primaryBlack = '#310250';
+export const secondary = '#472855';
+export const secondaryLight = '#85628B';
+export const neutral900 = '#343037';
+export const neutral700 = '#5A535F';
+export const neutral500 = '#9F95A6';
+export const neutral100 = '#D5D1D9';

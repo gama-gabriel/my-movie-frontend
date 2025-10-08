@@ -4,16 +4,31 @@ import { View, Pressable, Text } from 'react-native';
 import { Home, Sparkles, UserRound } from 'lucide-react-native';
 import { Icon } from '@/components/ui/icon';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { RatingDrawer } from '@/components/RatingDrawer';
+import { RatingDrawerProvider } from '@/contexts/RatingDrawerContext';
 
 const Tab = createMaterialTopTabNavigator();
 
-// Type-safe tabs component
 export const Tabs = withLayoutContext(Tab.Navigator);
 
 export default function Layout() {
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+
+  return (
+    <RatingDrawerProvider>
+      <LayoutContent router={router} pathname={pathname} insets={insets} />
+      <RatingDrawer />
+    </RatingDrawerProvider>
+  );
+}
+
+function LayoutContent({ router, pathname, insets }: { 
+  router: ReturnType<typeof useRouter>;
+  pathname: string;
+  insets: ReturnType<typeof useSafeAreaInsets>;
+}) {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-black">
