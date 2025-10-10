@@ -1,4 +1,6 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useState } from 'react';
+import { useUser } from '@clerk/clerk-expo';
 
 interface Media {
   id: number;
@@ -16,6 +18,7 @@ interface RatingDrawerContextType {
   openDrawer: (movie: Media) => void;
   closeDrawer: () => void;
   onRate: (rating: number) => void;
+  isRating: boolean;
 }
 
 const RatingDrawerContext = createContext<RatingDrawerContextType | undefined>(undefined);
@@ -23,6 +26,38 @@ const RatingDrawerContext = createContext<RatingDrawerContextType | undefined>(u
 export function RatingDrawerProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Media | null>(null);
+  const { user } = useUser();
+  const queryClient = useQueryClient();
+
+  const rateMutation = useMutation({
+    mutationFn: async ({ mediaId, rating }: { mediaId: number; rating: number }) => {
+      const response = await fetch('https://mymovie-nhhq.onrender.com/media/rating', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          clerk_id: user?.id,
+          ratings: [
+            {
+              media_id: mediaId,
+              score: rating,
+            }
+          ]
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to rate media');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate and refetch the recommendations query
+      queryClient.invalidateQueries({ queryKey: ['images'] });
+    },
+  });
 
   const openDrawer = (movie: Media) => {
     setSelectedMovie(movie);
@@ -34,15 +69,32 @@ export function RatingDrawerProvider({ children }: { children: React.ReactNode }
     setSelectedMovie(null);
   };
 
-  const onRate = (rating: number) => {
-    if (selectedMovie) {
-      console.log(`Rating ${rating} stars for movie: ${selectedMovie.title}`);
+  const onRate = async (rating: number) => {
+    if (selectedMovie && user) {
+      try {
+        await rateMutation.mutateAsync({
+          mediaId: selectedMovie.id,
+          rating,
+        });
+        console.log(`Successfully rated ${selectedMovie.title} with ${rating} stars`);
+      } catch (error) {
+        console.error('Error rating media:', error);
+      }
     }
     closeDrawer();
   };
 
   return (
-    <RatingDrawerContext.Provider value={{ isOpen, selectedMovie, openDrawer, closeDrawer, onRate }}>
+    <RatingDrawerContext.Provider
+      value={{
+        isOpen,
+        selectedMovie,
+        openDrawer,
+        closeDrawer,
+        onRate,
+        isRating: rateMutation.isPending
+      }}
+    >
       {children}
     </RatingDrawerContext.Provider>
   );

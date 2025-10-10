@@ -1,9 +1,9 @@
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
-import { SignedIn, SignedOut } from '@clerk/clerk-expo'
+import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
 import { Text, ActivityIndicator, RefreshControl, View, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { QueryFunctionContext, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import Animated from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { useCallback, useMemo, useState } from 'react';
@@ -22,6 +22,7 @@ interface Media {
   release_date: string;
   poster_path: string;
   backdrop_path: string;
+
   is_movie: boolean;
 }
 
@@ -32,41 +33,170 @@ interface APIResponse {
 interface Pagina {
   media: Media[];
   nextPage: number | undefined;
+  hasRatings: boolean; // 🧩 ADDED
+}
+
+interface FetchImagesMeta {
+  refresh?: boolean;
 }
 
 const HeaderList = () => (
-  <>
-    <View className='w-full flex flex-row items-center justify-start gap-4 bg-black px-4 pb-2'>
-      <Heading className="m-0 text-xl font-bold text-white w-fit">
-        Recomendado para você
-      </Heading>
-      <Badge size="md" variant="solid" action="muted" className='rounded-full px-4'>
-        <BadgeText>Personalizado</BadgeText>
-      </Badge>
+  <View className='w-full flex flex-row items-center justify-start gap-4 bg-black px-4 pb-2'>
+    <Heading className="m-0 text-xl font-bold text-white w-fit">
+      Recomendado para você
+    </Heading>
+    <Badge size="md" variant="solid" action="muted" className='rounded-full px-4'>
+      <BadgeText>Personalizado</BadgeText>
+    </Badge>
+  </View>
+);
 
-    </View>
-  </>
-)
+type ImagesQueryKey = readonly ['images'];
+const imagesQueryKey = (): ImagesQueryKey => ['images'] as const;
 
-const fetchImages = async ({ pageParam = 0 }): Promise<Pagina> => {
-  const response = await fetch(`https://mymovie-nhhq.onrender.com/media/media?page=${pageParam}&page_size=10`);
-  const data: APIResponse = await response.json();
+// 🧩 New version that handles the 3-stage logic
+const fetchImagesBase = async (
+  page: number,
+  refresh: boolean,
+  signal?: AbortSignal,
+  clerkId?: string,
+  hasRatings?: boolean
+): Promise<Pagina> => {
+  try {
+    console.log(refresh)
+    // 🧩 Step 1: On first page, determine if the user has ratings
+    if (page === 0) {
 
-  // Preload images for smoother experience
-  if (data.media && data.media.length > 0) {
-    const backdropUrls = data.media.map((item: Media) => item.backdrop_path);
-    Image.prefetch([...backdropUrls]);
+      const checkRes = await fetch(
+        `https://mymovie-nhhq.onrender.com/media/check_ratings?user=${clerkId}`,
+        { signal }
+      );
+
+      if (checkRes.status === 404) {
+        // user has no ratings → return select items
+        const curatedRes = await fetch(
+          `https://mymovie-nhhq.onrender.com/media/startup_medias`,
+          { signal }
+        );
+        const curatedData: APIResponse = await curatedRes.json();
+        return {
+          media: curatedData.media,
+          nextPage: 1,
+          hasRatings: false,
+        };
+      }
+
+      console.log(JSON.stringify({
+        clerk_id: clerkId,
+        page_number: 1,
+        page_size: 10,
+        refresh,
+      }))
+      const recRes = await fetch(
+        `https://mymovie-nhhq.onrender.com/media/recommendations?refresh=${refresh}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal,
+          body: JSON.stringify({
+            clerk_id: clerkId,
+            page_number: 1,
+            page_size: 10,
+            refresh,
+          }),
+        }
+      );
+
+      if (recRes.status === 404) {
+        // also fallback if user has no reviews
+        const curatedRes = await fetch(
+          `https://mymovie-nhhq.onrender.com/media/startup_medias`,
+          { signal }
+        );
+        const curatedData: APIResponse = await curatedRes.json();
+        return {
+          media: curatedData.media,
+          nextPage: 1,
+          hasRatings: false,
+        };
+      }
+
+      const data: APIResponse = await recRes.json();
+      return {
+        media: data.media,
+        nextPage: data.media.length > 0 ? 2 : undefined,
+        hasRatings: true,
+      };
+    }
+
+    // 🧩 Step 2: User has ratings → keep fetching personalized recs
+    if (hasRatings) {
+
+      console.log(JSON.stringify({
+        clerk_id: clerkId,
+        page_number: 1,
+        page_size: 10,
+        refresh,
+      }))
+      const res = await fetch(
+        `https://mymovie-nhhq.onrender.com/media/recommendations`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal,
+          body: JSON.stringify({
+            clerk_id: clerkId,
+            page_number: page,
+            page_size: 10,
+            refresh,
+          }),
+        }
+      );
+
+      const data: APIResponse = await res.json();
+      return {
+        media: data.media,
+        nextPage: data.media.length > 0 ? page + 1 : undefined,
+        hasRatings: true,
+      };
+    }
+
+    // 🧩 Step 3: User still has no ratings → random paginated items
+    const res = await fetch(
+      `https://mymovie-nhhq.onrender.com/media/media?page=${page}&page_size=10`,
+      { signal }
+    );
+    const data: APIResponse = await res.json();
+
+    return {
+      media: data.media,
+      nextPage: data.media.length > 0 ? page + 1 : undefined,
+      hasRatings: false,
+    };
+  } catch (err) {
+    console.error('Error in fetchImagesBase:', err);
+    throw err;
+    // return { media: [], nextPage: undefined, hasRatings: false };
   }
+};
 
-  return {
-    media: data.media,
-    nextPage: data.media.length > 0 ? pageParam + 1 : undefined
-  }
-}
+const fetchImages = async (
+  ctx: QueryFunctionContext<any, number> & { meta?: FetchImagesMeta },
+  clerkId?: string,
+  hasRatings?: boolean
+): Promise<Pagina> => {
+  // force pageParam to be a number
+  const pageParam = (ctx.pageParam ?? 0) as number;
+  const { signal, meta } = ctx;
 
+  return fetchImagesBase(pageParam, !!meta?.refresh, signal, clerkId, hasRatings);
+};
 
 export function ImageGallery() {
   const { openDrawer } = useRatingDrawer();
+  const queryClient = useQueryClient();
+  const { user } = useUser(); // 🧩 get user id
+  const clerkId = user?.id;
 
   const {
     data,
@@ -75,13 +205,14 @@ export function ImageGallery() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    refetch,
     isRefetching,
-  } = useInfiniteQuery({
-    queryKey: ['images'],
+  } = useInfiniteQuery<Pagina>({
+    queryKey: imagesQueryKey(),
     initialPageParam: 0,
-    queryFn: fetchImages,
-    getNextPageParam: (lastPage) => lastPage.nextPage,
+    // @ts-ignore
+    queryFn: (ctx) => fetchImages(ctx, clerkId, (data as { pages?: Pagina[] })?.pages?.[0]?.hasRatings),
+    getNextPageParam: (lastPage: Pagina) => lastPage.nextPage,
+    enabled: !!clerkId,
   });
 
   const images = useMemo(
@@ -89,10 +220,8 @@ export function ImageGallery() {
     [data]
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleEndReached = useCallback(
     debounce(() => {
-      console.log("end reached")
       if (error) return;
       if (hasNextPage && !isFetchingNextPage) {
         fetchNextPage();
@@ -105,7 +234,7 @@ export function ImageGallery() {
     return (
       <SafeAreaView edges={["bottom"]} className='flex-1 w-full bg-black'>
         <View className='flex-1 items-center justify-center'>
-          <ActivityIndicator size="large" color="blue" className='text-primary-light' />
+          <ActivityIndicator size="large" color="blue" />
         </View>
       </SafeAreaView>
     );
@@ -122,88 +251,79 @@ export function ImageGallery() {
     );
   }
 
-  const blurhash = 'B0JH:g-;fQ_3fQfQ'
-
+  const blurhash = 'B0JH:g-;fQ_3fQfQ';
 
   return (
-    <>
-      <FlashList
-        contentContainerClassName="pt-20"
-        onLayout={(event) => {
-          const { width, height, x, y } = event.nativeEvent.layout;
-          console.log('Size:', { width, height, x, y });
-        }}
-        ListHeaderComponent={HeaderList}
-        className='flex flex-col gap-2 w-full'
-        data={images}
-        keyExtractor={(item) => item.id.toString()}
-        refreshControl={
-          <RefreshControl
-            progressBackgroundColor={'#343037'}
-            colors={['white']}
-            refreshing={isRefetching}
-            onRefresh={refetch}
-            progressViewOffset={80}
+    <FlashList
+      contentContainerClassName="pt-20"
+      ListHeaderComponent={HeaderList}
+      className='flex flex-col gap-2 w-full'
+      data={images}
+      keyExtractor={(item) => item.id.toString()}
+      refreshControl={
+        <RefreshControl
+          progressBackgroundColor={'#343037'}
+          colors={['white']}
+          refreshing={isRefetching}
+          onRefresh={async () => {
+            await queryClient.removeQueries({ queryKey: imagesQueryKey() });
+            await queryClient.invalidateQueries({ queryKey: imagesQueryKey() });
+            await queryClient.fetchInfiniteQuery({
+              queryKey: imagesQueryKey(),
+              initialPageParam: 0,
+              queryFn: (ctx) =>
+                fetchImages({ ...ctx, pageParam: (ctx.pageParam ?? 0) as number, meta: { refresh: true } }, clerkId),
+            });
+          }}
+          progressViewOffset={80}
+        />
+      }
+      estimatedItemSize={800}
+      drawDistance={1200}
+      renderItem={({ item }) => (
+        <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
+          <Image
+            source={{ uri: `https://image.tmdb.org/t/p/w300/${item.backdrop_path}` }}
+            style={{ width: "100%", height: 200, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+            cachePolicy="memory-disk"
+            recyclingKey={item.id.toString()}
+            contentFit="cover"
+            placeholder={{ blurhash }}
+            transition={500}
           />
-        }
-        estimatedItemSize={800}
-        drawDistance={1200}
-        renderItem={({ item }) => (
-          <>
-            <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
-              <Image
-                source={{ uri: `https://image.tmdb.org/t/p/w300/${item.backdrop_path}` }}
-                style={{ width: "100%", height: 200, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
-                cachePolicy="memory-disk"
-                recyclingKey={item.id.toString()} // Fix image flickering
-                contentFit="cover" // Ensure smooth rendering
-                placeholder={{ blurhash }} // Add placeholder
-                transition={500}
-
-              />
-              <View className='p-4 gap-2 bg-white/5'>
-                <Text className='text-white font-bold m-0'>{item.title}</Text>
-                <View className='flex flex-row justify-between items-center gap-4'>
-                  <Text className='text-neutral-500'>{item.release_date.slice(0, 4)}</Text>
-                  {item.is_movie ? (
-                    <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
-                      <BadgeText>Filme</BadgeText>
-                    </Badge>
-                  ) : (
-                    <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
-                      <BadgeText>Série</BadgeText>
-                    </Badge>
-                  )}
-                </View>
-
-                <View className='flex flex-row justify-end mt-2'>
-                  <Button
-                    className='w-full bg-transparent border border-neutral-500 data-[active=true]:bg-neutral-700'
-                    onPress={() => openDrawer(item)}
-                  >
-                    <ButtonIcon as={Star} color="#dddddd" ></ButtonIcon>
-                    <ButtonText className='px-2'>Avaliar</ButtonText>
-                  </Button>
-                </View>
-
-              </View>
+          <View className='p-4 gap-2 bg-white/5'>
+            <Text className='text-white font-bold m-0'>{item.title}</Text>
+            <View className='flex flex-row justify-between items-center gap-4'>
+              <Text className='text-neutral-500'>{item.release_date.slice(0, 4)}</Text>
+              <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
+                <BadgeText>{item.is_movie ? "Filme" : "Série"}</BadgeText>
+              </Badge>
             </View>
-          </>
-        )}
-        onEndReachedThreshold={1.5}
-        onEndReached={handleEndReached}
-        ListFooterComponent={
-          isFetchingNextPage ? (
-            <ActivityIndicator
-              size="small"
-              className='text-primary-light'
-              style={{ marginBottom: 20 }}
-            />
-          ) : null
-        }
-      />
 
-    </>
+            <View className='flex flex-row justify-end mt-2'>
+              <Button
+                className='w-full bg-transparent border border-neutral-500 data-[active=true]:bg-neutral-700'
+                onPress={() => openDrawer(item)}
+              >
+                <ButtonIcon as={Star} color="#dddddd" />
+                <ButtonText className='px-2'>Avaliar</ButtonText>
+              </Button>
+            </View>
+          </View>
+        </View>
+      )}
+      onEndReachedThreshold={1.5}
+      onEndReached={handleEndReached}
+      ListFooterComponent={
+        isFetchingNextPage ? (
+          <ActivityIndicator
+            size="small"
+            className='text-primary-light'
+            style={{ marginBottom: 20 }}
+          />
+        ) : null
+      }
+    />
   );
 }
 
