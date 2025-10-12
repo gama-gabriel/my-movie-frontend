@@ -54,8 +54,8 @@ export function RatingDrawerProvider({ children }: { children: React.ReactNode }
       return response.json();
     },
     onSuccess: () => {
-      // Invalidate and refetch the recommendations query
-      queryClient.invalidateQueries({ queryKey: ['images'] });
+      // // Invalidate and refetch the recommendations query
+      // queryClient.invalidateQueries({ queryKey: ['images'] });
     },
   });
 

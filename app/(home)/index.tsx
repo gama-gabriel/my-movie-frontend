@@ -63,7 +63,8 @@ const fetchImagesBase = async (
   hasRatings?: boolean
 ): Promise<Pagina> => {
   try {
-    console.log(refresh)
+    console.log("refresh: ", refresh)
+    console.log("hasRatings: ", hasRatings)
     // 🧩 Step 1: On first page, determine if the user has ratings
     if (page === 0) {
 
@@ -72,6 +73,7 @@ const fetchImagesBase = async (
         { signal }
       );
 
+      console.log("checkRes.status: ", await checkRes.status)
       if (checkRes.status === 404) {
         // user has no ratings → return select items
         const curatedRes = await fetch(
@@ -197,6 +199,7 @@ export function ImageGallery() {
   const queryClient = useQueryClient();
   const { user } = useUser(); // 🧩 get user id
   const clerkId = user?.id;
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const {
     data,
@@ -260,6 +263,7 @@ export function ImageGallery() {
       className='flex flex-col gap-2 w-full'
       data={images}
       keyExtractor={(item) => item.id.toString()}
+      key={refreshKey}
       refreshControl={
         <RefreshControl
           progressBackgroundColor={'#343037'}
@@ -267,13 +271,15 @@ export function ImageGallery() {
           refreshing={isRefetching}
           onRefresh={async () => {
             await queryClient.removeQueries({ queryKey: imagesQueryKey() });
-            await queryClient.invalidateQueries({ queryKey: imagesQueryKey() });
-            await queryClient.fetchInfiniteQuery({
+            const result = await queryClient.fetchInfiniteQuery({
               queryKey: imagesQueryKey(),
               initialPageParam: 0,
               queryFn: (ctx) =>
-                fetchImages({ ...ctx, pageParam: (ctx.pageParam ?? 0) as number, meta: { refresh: true } }, clerkId),
+                fetchImages({ ...ctx, pageParam: 0, meta: { refresh: true } }, clerkId),
             });
+            queryClient.setQueryData(imagesQueryKey(), result);
+            queryClient.invalidateQueries({ queryKey: imagesQueryKey() });
+            setRefreshKey((k) => k + 1);
           }}
           progressViewOffset={80}
         />
