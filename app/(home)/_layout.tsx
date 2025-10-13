@@ -6,6 +6,7 @@ import { Icon } from '@/components/ui/icon';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RatingDrawer } from '@/components/RatingDrawer';
 import { RatingDrawerProvider } from '@/contexts/RatingDrawerContext';
+import EventBus from '@/utils/EventBus';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -24,7 +25,7 @@ export default function Layout() {
   );
 }
 
-function LayoutContent({ router, pathname, insets }: { 
+function LayoutContent({ router, pathname, insets }: {
   router: ReturnType<typeof useRouter>;
   pathname: string;
   insets: ReturnType<typeof useSafeAreaInsets>;
@@ -87,7 +88,13 @@ function TabButton({ icon, label, route, isSelected }: TabButtonProps) {
 
   return (
     <Pressable
-      onPress={() => router.push(route)}
+      onPress={() => {
+        if (isSelected && route === '/(home)') {
+          EventBus.emit('scrollToTopHome');
+        } else {
+          router.push(route);
+        }
+      }}
       className="items-center gap-1"
     >
       <Icon

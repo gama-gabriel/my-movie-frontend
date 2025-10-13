@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { QueryFunctionContext, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import Animated, { FadeOut } from 'react-native-reanimated';
 import { Image } from 'expo-image';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlashList, FlashListProps } from '@shopify/flash-list';
 import { debounce } from 'lodash';
 import { Badge, BadgeText } from '@/components/ui/badge'
@@ -15,6 +15,7 @@ import { neutral700, primaryLight } from '../../constants/constants'
 import { useAnimatedStarOpacity } from '@/hooks/AnimatedStarScale'
 import { useRatingDrawer } from '@/contexts/RatingDrawerContext';
 import { Skeleton } from 'moti/skeleton'
+import EventBus from '@/utils/EventBus'
 
 
 interface Media {
@@ -274,7 +275,19 @@ export function ImageGallery() {
   const clerkId = user?.id;
   const [refreshKey, setRefreshKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const list = useRef<FlashList<Pagina> | null>(null);
+  const listRef = useRef<FlashList<Media> | null>(null);
+
+  useEffect(() => {
+    const scrollToTop = () => {
+      listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    };
+
+    EventBus.on('scrollToTopHome', scrollToTop);
+
+    return () => {
+      EventBus.off('scrollToTopHome', scrollToTop);
+    };
+  }, []);
 
   const {
     data,
@@ -334,6 +347,7 @@ export function ImageGallery() {
       exiting={FadeOut.duration(200)}>
       <FlashList
         contentContainerClassName="pt-20"
+        ref={listRef}
         key={refreshKey}
         ListHeaderComponent={HeaderList}
         className='flex flex-col gap-2 w-full'
@@ -346,7 +360,6 @@ export function ImageGallery() {
             refreshing={refreshing || isRefetching}
             onRefresh={async () => {
               setRefreshing(true);
-              list.current?.prepareForLayoutAnimationRender()
               await queryClient.removeQueries({ queryKey: imagesQueryKey() });
               const result = await queryClient.fetchInfiniteQuery({
                 queryKey: imagesQueryKey(),
