@@ -4,16 +4,18 @@ import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
 import { Text, ActivityIndicator, RefreshControl, View, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { QueryFunctionContext, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import Animated from 'react-native-reanimated';
+import Animated, { FadeOut } from 'react-native-reanimated';
 import { Image } from 'expo-image';
-import { useCallback, useMemo, useState } from 'react';
-import { FlashList } from '@shopify/flash-list';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { FlashList, FlashListProps } from '@shopify/flash-list';
 import { debounce } from 'lodash';
 import { Badge, BadgeText } from '@/components/ui/badge'
 import { Star } from 'lucide-react-native'
 import { neutral700, primaryLight } from '../../constants/constants'
 import { useAnimatedStarOpacity } from '@/hooks/AnimatedStarScale'
 import { useRatingDrawer } from '@/contexts/RatingDrawerContext';
+import { Skeleton } from 'moti/skeleton'
+
 
 interface Media {
   id: number;
@@ -38,6 +40,38 @@ interface Pagina {
 
 interface FetchImagesMeta {
   refresh?: boolean;
+}
+
+export function SkeletonFlashList() {
+  const data = Array.from({ length: 4 }); // 4 placeholder skeletons
+
+  const renderItem = () => (
+    <View className="w-[95%] self-center my-2">
+      <Skeleton
+        colorMode="dark"
+        width={'100%'}
+        height={200}
+        radius={24}
+      />
+    </View>
+  );
+
+  return (
+    <SafeAreaView edges={['bottom']} className="flex-1 bg-black">
+      <FlashList
+        data={data}
+        scrollEnabled={false}
+        showsVerticalScrollIndicator={false}
+        renderItem={renderItem}
+        estimatedItemSize={200}
+        keyExtractor={(_, i) => i.toString()}
+        contentContainerStyle={{
+          paddingTop: 80,
+          paddingBottom: 40,
+        }}
+      />
+    </SafeAreaView>
+  );
 }
 
 const HeaderList = () => (
@@ -65,6 +99,7 @@ const fetchImagesBase = async (
   try {
     console.log("refresh: ", refresh)
     console.log("hasRatings: ", hasRatings)
+
     // 🧩 Step 1: On first page, determine if the user has ratings
     if (page === 0) {
 
@@ -163,7 +198,40 @@ const fetchImagesBase = async (
       };
     }
 
-    // 🧩 Step 3: User still has no ratings → random paginated items
+    // 🧩 Step 3: User still has no ratings → recheck before deciding what to fetch
+    if (!hasRatings) {
+      // 🔁 Recheck whether the user has now rated something
+      const recheck = await fetch(
+        `https://mymovie-nhhq.onrender.com/media/check_ratings?user=${clerkId}`,
+        { signal }
+      );
+
+      if (recheck.status !== 404) {
+        // 🎯 User now has ratings → switch to recommendations
+        const recRes = await fetch(
+          `https://mymovie-nhhq.onrender.com/media/recommendations`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal,
+            body: JSON.stringify({
+              clerk_id: clerkId,
+              page_number: page,
+              page_size: 10,
+              refresh,
+            }),
+          }
+        );
+        const data: APIResponse = await recRes.json();
+        return {
+          media: data.media,
+          nextPage: data.media.length > 0 ? page + 1 : undefined,
+          hasRatings: true, // ✅ Mark as now rated
+        };
+      }
+    }
+
+    // 🧩 Still no ratings → continue with random media
     const res = await fetch(
       `https://mymovie-nhhq.onrender.com/media/media?page=${page}&page_size=10`,
       { signal }
@@ -194,12 +262,19 @@ const fetchImages = async (
   return fetchImagesBase(pageParam, !!meta?.refresh, signal, clerkId, hasRatings);
 };
 
+type AnimatedFlashListType<T> = React.ComponentClass<FlashListProps<T>>;
+export const AnimatedFlashList = Animated.createAnimatedComponent(
+  FlashList as AnimatedFlashListType<any>
+);
+
 export function ImageGallery() {
   const { openDrawer } = useRatingDrawer();
   const queryClient = useQueryClient();
   const { user } = useUser(); // 🧩 get user id
   const clerkId = user?.id;
   const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const list = useRef<FlashList<Pagina> | null>(null);
 
   const {
     data,
@@ -223,6 +298,7 @@ export function ImageGallery() {
     [data]
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleEndReached = useCallback(
     debounce(() => {
       if (error) return;
@@ -233,13 +309,9 @@ export function ImageGallery() {
     [hasNextPage, isFetchingNextPage, fetchNextPage]
   );
 
-  if (status === 'pending') {
+  if (status === 'pending' || isRefetching) {
     return (
-      <SafeAreaView edges={["bottom"]} className='flex-1 w-full bg-black'>
-        <View className='flex-1 items-center justify-center'>
-          <ActivityIndicator size="large" color="blue" />
-        </View>
-      </SafeAreaView>
+      <SkeletonFlashList />
     );
   }
 
@@ -257,79 +329,87 @@ export function ImageGallery() {
   const blurhash = 'B0JH:g-;fQ_3fQfQ';
 
   return (
-    <FlashList
-      contentContainerClassName="pt-20"
-      ListHeaderComponent={HeaderList}
-      className='flex flex-col gap-2 w-full'
-      data={images}
-      keyExtractor={(item) => item.id.toString()}
-      key={refreshKey}
-      refreshControl={
-        <RefreshControl
-          progressBackgroundColor={'#343037'}
-          colors={['white']}
-          refreshing={isRefetching}
-          onRefresh={async () => {
-            await queryClient.removeQueries({ queryKey: imagesQueryKey() });
-            const result = await queryClient.fetchInfiniteQuery({
-              queryKey: imagesQueryKey(),
-              initialPageParam: 0,
-              queryFn: (ctx) =>
-                fetchImages({ ...ctx, pageParam: 0, meta: { refresh: true } }, clerkId),
-            });
-            queryClient.setQueryData(imagesQueryKey(), result);
-            queryClient.invalidateQueries({ queryKey: imagesQueryKey() });
-            setRefreshKey((k) => k + 1);
-          }}
-          progressViewOffset={80}
-        />
-      }
-      estimatedItemSize={800}
-      drawDistance={1200}
-      renderItem={({ item }) => (
-        <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
-          <Image
-            source={{ uri: `https://image.tmdb.org/t/p/w300/${item.backdrop_path}` }}
-            style={{ width: "100%", height: 200, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
-            cachePolicy="memory-disk"
-            recyclingKey={item.id.toString()}
-            contentFit="cover"
-            placeholder={{ blurhash }}
-            transition={500}
-          />
-          <View className='p-4 gap-2 bg-white/5'>
-            <Text className='text-white font-bold m-0'>{item.title}</Text>
-            <View className='flex flex-row justify-between items-center gap-4'>
-              <Text className='text-neutral-500'>{item.release_date.slice(0, 4)}</Text>
-              <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
-                <BadgeText>{item.is_movie ? "Filme" : "Série"}</BadgeText>
-              </Badge>
-            </View>
+    <Animated.View
+      className='flex-1 w-full bg-black'
+      exiting={FadeOut.duration(200)}>
+      <FlashList
+        contentContainerClassName="pt-20"
+        key={refreshKey}
+        ListHeaderComponent={HeaderList}
+        className='flex flex-col gap-2 w-full'
+        data={images}
+        keyExtractor={(item) => item.id.toString()}
+        refreshControl={
+          <RefreshControl
+            progressBackgroundColor={neutral700}
+            colors={['white']}
+            refreshing={refreshing || isRefetching}
+            onRefresh={async () => {
+              setRefreshing(true);
+              list.current?.prepareForLayoutAnimationRender()
+              await queryClient.removeQueries({ queryKey: imagesQueryKey() });
+              const result = await queryClient.fetchInfiniteQuery({
+                queryKey: imagesQueryKey(),
+                initialPageParam: 0,
+                queryFn: (ctx) =>
+                  fetchImages({ ...ctx, pageParam: 0, meta: { refresh: true } }, clerkId),
+              });
+              queryClient.setQueryData(imagesQueryKey(), result);
+              queryClient.invalidateQueries({ queryKey: imagesQueryKey() });
+              setRefreshKey((k) => k + 1);
 
-            <View className='flex flex-row justify-end mt-2'>
-              <Button
-                className='w-full bg-transparent border border-neutral-500 data-[active=true]:bg-neutral-700'
-                onPress={() => openDrawer(item)}
-              >
-                <ButtonIcon as={Star} color="#dddddd" />
-                <ButtonText className='px-2'>Avaliar</ButtonText>
-              </Button>
+              setTimeout(() => setRefreshing(false), 300);
+            }}
+            progressViewOffset={80}
+          />
+        }
+        estimatedItemSize={800}
+        drawDistance={1200}
+        renderItem={({ item }) => (
+          <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
+            <Image
+              source={{ uri: `https://image.tmdb.org/t/p/w300/${item.backdrop_path}` }}
+              style={{ width: "100%", height: 200, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+              cachePolicy="memory-disk"
+              recyclingKey={item.id.toString()}
+              contentFit="cover"
+              placeholder={{ blurhash }}
+              transition={{ duration: 1000, timing: 'ease-in' }}
+            />
+            <View className='p-4 gap-2 bg-white/5'>
+              <Text className='text-white font-bold m-0'>{item.title}</Text>
+              <View className='flex flex-row justify-between items-center gap-4'>
+                <Text className='text-neutral-500'>{item.release_date.slice(0, 4)}</Text>
+                <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
+                  <BadgeText>{item.is_movie ? "Filme" : "Série"}</BadgeText>
+                </Badge>
+              </View>
+
+              <View className='flex flex-row justify-end mt-2'>
+                <Button
+                  className='w-full bg-transparent border border-neutral-500 data-[active=true]:bg-neutral-700'
+                  onPress={() => openDrawer(item)}
+                >
+                  <ButtonIcon as={Star} color="#dddddd" />
+                  <ButtonText className='px-2'>Avaliar</ButtonText>
+                </Button>
+              </View>
             </View>
           </View>
-        </View>
-      )}
-      onEndReachedThreshold={1.5}
-      onEndReached={handleEndReached}
-      ListFooterComponent={
-        isFetchingNextPage ? (
-          <ActivityIndicator
-            size="small"
-            className='text-primary-light'
-            style={{ marginBottom: 20 }}
-          />
-        ) : null
-      }
-    />
+        )}
+        onEndReachedThreshold={1.5}
+        onEndReached={handleEndReached}
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <ActivityIndicator
+              size="small"
+              className='text-primary-light'
+              style={{ marginBottom: 20 }}
+            />
+          ) : null
+        }
+      />
+    </Animated.View>
   );
 }
 
