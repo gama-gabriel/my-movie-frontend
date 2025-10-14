@@ -1,7 +1,7 @@
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
-import { Text, ActivityIndicator, RefreshControl, View, Pressable } from 'react-native'
+import { Text, ActivityIndicator, RefreshControl, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { QueryFunctionContext, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import Animated, { FadeOut } from 'react-native-reanimated';
@@ -11,8 +11,7 @@ import { FlashList, FlashListProps } from '@shopify/flash-list';
 import { debounce } from 'lodash';
 import { Badge, BadgeText } from '@/components/ui/badge'
 import { Star } from 'lucide-react-native'
-import { neutral700, primaryLight } from '../../constants/constants'
-import { useAnimatedStarOpacity } from '@/hooks/AnimatedStarScale'
+import { neutral700 } from '../../constants/constants'
 import { useRatingDrawer } from '@/contexts/RatingDrawerContext';
 import { Skeleton } from 'moti/skeleton'
 import EventBus from '@/utils/EventBus'
@@ -36,7 +35,7 @@ interface APIResponse {
 interface Pagina {
   media: Media[];
   nextPage: number | undefined;
-  hasRatings: boolean; // 🧩 ADDED
+  hasRatings: boolean;
 }
 
 interface FetchImagesMeta {
@@ -44,7 +43,7 @@ interface FetchImagesMeta {
 }
 
 export function SkeletonFlashList() {
-  const data = Array.from({ length: 4 }); // 4 placeholder skeletons
+  const data = Array.from({ length: 4 });
 
   const renderItem = () => (
     <View className="w-[95%] self-center my-2">
@@ -89,7 +88,6 @@ const HeaderList = () => (
 type ImagesQueryKey = readonly ['images'];
 const imagesQueryKey = (): ImagesQueryKey => ['images'] as const;
 
-// 🧩 New version that handles the 3-stage logic
 const fetchImagesBase = async (
   page: number,
   refresh: boolean,
@@ -227,7 +225,7 @@ const fetchImagesBase = async (
         return {
           media: data.media,
           nextPage: data.media.length > 0 ? page + 1 : undefined,
-          hasRatings: true, // ✅ Mark as now rated
+          hasRatings: true,
         };
       }
     }
@@ -247,7 +245,6 @@ const fetchImagesBase = async (
   } catch (err) {
     console.error('Error in fetchImagesBase:', err);
     throw err;
-    // return { media: [], nextPage: undefined, hasRatings: false };
   }
 };
 
@@ -271,7 +268,7 @@ export const AnimatedFlashList = Animated.createAnimatedComponent(
 export function ImageGallery() {
   const { openDrawer } = useRatingDrawer();
   const queryClient = useQueryClient();
-  const { user } = useUser(); // 🧩 get user id
+  const { user } = useUser();
   const clerkId = user?.id;
   const [refreshKey, setRefreshKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
@@ -425,74 +422,6 @@ export function ImageGallery() {
     </Animated.View>
   );
 }
-
-interface StarRatingProps {
-  maxStars?: number;
-  rating?: number;
-  onRatingChange?: (rating: number) => void;
-  size?: number;
-  disabled?: boolean;
-}
-
-export const StarRating = ({
-  maxStars = 5,
-  rating: initialRating = 1,
-  onRatingChange,
-  size = 24,
-  disabled = false,
-}: StarRatingProps) => {
-  const [rating, setRating] = useState(initialRating);
-
-  const handlePress = (index: number) => {
-    if (disabled) return;
-    const newRating = index + 1;
-    setRating(newRating);
-    onRatingChange?.(newRating);
-  };
-  const stars = Array.from({ length: maxStars }).map((_, i) => {
-    const isFilled = i < rating;
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const animatedStyle = useAnimatedStarOpacity(isFilled);
-
-    return (
-      <Pressable
-        key={i}
-        onPress={() => handlePress(i)}
-        disabled={disabled}
-        className={disabled ? 'opacity-50' : ''}
-      >
-        <View>
-          <Star
-            strokeWidth={1}
-            size={size}
-            color={neutral700}
-            fill="none"
-          />
-
-          <Animated.View
-            style={[
-              {
-                position: 'absolute',
-                top: 0,
-                left: 0,
-              },
-              animatedStyle,
-            ]}
-          >
-            <Star
-              strokeWidth={1}
-              size={size}
-              color={primaryLight}
-              fill={primaryLight}
-            />
-          </Animated.View>
-        </View>
-      </Pressable>
-    );
-  });
-
-  return <View className="flex-row space-x-1 gap-2">{stars}</View>;
-};
 
 export default function Page() {
   return (

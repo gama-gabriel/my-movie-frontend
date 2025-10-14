@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { createContext, useContext, useState } from 'react';
 import { useUser } from '@clerk/clerk-expo';
 
@@ -27,7 +27,6 @@ export function RatingDrawerProvider({ children }: { children: React.ReactNode }
   const [isOpen, setIsOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Media | null>(null);
   const { user } = useUser();
-  const queryClient = useQueryClient();
 
   const rateMutation = useMutation({
     mutationFn: async ({ mediaId, rating }: { mediaId: number; rating: number }) => {

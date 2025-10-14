@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter, DrawerHeader } from '@/components/ui/drawer';
-import { StarRating } from '@/app/(home)/index';
 import { useRatingDrawer } from '@/contexts/RatingDrawerContext';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { useAnimatedStarOpacity } from '@/hooks/AnimatedStarScale';
+import { Star } from 'lucide-react-native';
+import { neutral700, primaryLight } from '@/constants/constants';
 
 export function RatingDrawer() {
   const { isOpen, selectedMovie, closeDrawer, onRate } = useRatingDrawer();
@@ -75,3 +77,71 @@ export function RatingDrawer() {
     </Drawer>
   );
 }
+
+interface StarRatingProps {
+  maxStars?: number;
+  rating?: number;
+  onRatingChange?: (rating: number) => void;
+  size?: number;
+  disabled?: boolean;
+}
+
+export const StarRating = ({
+  maxStars = 5,
+  rating: initialRating = 1,
+  onRatingChange,
+  size = 24,
+  disabled = false,
+}: StarRatingProps) => {
+  const [rating, setRating] = useState(initialRating);
+
+  const handlePress = (index: number) => {
+    if (disabled) return;
+    const newRating = index + 1;
+    setRating(newRating);
+    onRatingChange?.(newRating);
+  };
+  const stars = Array.from({ length: maxStars }).map((_, i) => {
+    const isFilled = i < rating;
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const animatedStyle = useAnimatedStarOpacity(isFilled);
+
+    return (
+      <Pressable
+        key={i}
+        onPress={() => handlePress(i)}
+        disabled={disabled}
+        className={disabled ? 'opacity-50' : ''}
+      >
+        <View>
+          <Star
+            strokeWidth={1}
+            size={size}
+            color={neutral700}
+            fill="none"
+          />
+
+          <Animated.View
+            style={[
+              {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+              },
+              animatedStyle,
+            ]}
+          >
+            <Star
+              strokeWidth={1}
+              size={size}
+              color={primaryLight}
+              fill={primaryLight}
+            />
+          </Animated.View>
+        </View>
+      </Pressable>
+    );
+  });
+
+  return <View className="flex-row space-x-1 gap-2">{stars}</View>;
+};
