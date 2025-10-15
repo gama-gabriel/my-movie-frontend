@@ -35,6 +35,15 @@ module.exports = {
           700: 'rgb(var(--color-neutral-700)/<alpha-value>)',
           900: 'rgb(var(--color-neutral-900)/<alpha-value>)',
         },
+        danger: {
+          DEFAULT: 'rgb(var(--color-danger)/<alpha-value>)',
+        },
+        success: {
+          DEFAULT: 'rgb(var(--color-success)/<alpha-value>)',
+        },
+        warning: {
+          DEFAULT: 'rgb(var(--color-warning)/<alpha-value>)',
+        },
         typography: {
           0: 'rgb(var(--color-typography-0)/<alpha-value>)',
           50: 'rgb(var(--color-typography-50)/<alpha-value>)',

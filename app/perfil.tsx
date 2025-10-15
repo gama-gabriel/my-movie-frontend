@@ -2,6 +2,7 @@ import SignOutButton from "@/app/components/SignOutButton";
 import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from "@/components/ui/alert-dialog";
 import { Button, ButtonSpinner, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
+import { useToastVariant } from "@/hooks/useToastVariant";
 import { protectedFetch } from "@/utils/Auth.utils";
 import { SignedIn, SignedOut, useAuth, useUser } from "@clerk/clerk-expo";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -12,8 +13,72 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Perfil() {
 
-  const queryClient = useQueryClient();
+  // const toast = useToast();
 
+  // const [idToastErro, setIdToastErro] = React.useState("");
+  // const handleErro = () => {
+  //   if (!toast.isActive(idToastErro)) {
+  //     mostrarToastErro();
+  //   }
+  // };
+
+  // const [idToastSucesso, setIdToastSucesso] = React.useState("");
+  // const handleSucesso = () => {
+  //   if (!toast.isActive(idToastSucesso)) {
+  //     mostrarToastSucesso();
+  //   }
+  // };
+
+  // const mostrarToastSucesso = () => {
+  //   const newId = Math.random().toString();
+  //   setIdToastSucesso(newId);
+  //   toast.show({
+  //     id: newId,
+  //     placement: 'bottom',
+  //     duration: 3000,
+  //     render: ({ id }) => {
+  //       const uniqueToastId = 'toast-' + id;
+  //       return (
+  //         <SafeAreaView edges={['bottom', 'left', 'right']} className="py-4">
+  //           <Toast nativeID={uniqueToastId} action="error" variant="outline" className="border-success/75 flex flex-row gap-4 px-6 py-4 items-center">
+  //             <CheckIcon color={success}></CheckIcon>
+  //             <Text className="text-white">
+  //               Conta excluída com sucesso!
+  //             </Text>
+
+  //           </Toast>
+  //         </SafeAreaView>
+  //       );
+  //     },
+  //   });
+  // };
+
+  // const mostrarToastErro = () => {
+  //   const newId = Math.random().toString();
+  //   setIdToastErro(newId);
+  //   toast.show({
+  //     id: newId,
+  //     placement: 'bottom',
+  //     duration: 3000,
+  //     render: ({ id }) => {
+  //       const uniqueToastId = 'toast-' + id;
+  //       return (
+  //         <SafeAreaView edges={['bottom', 'left', 'right']} className="pb-4 flex">
+  //           <Toast nativeID={uniqueToastId} action="error" variant="outline" className="border-danger/75 flex flex-row gap-4 px-6 py-4 items-center w-[90%] mx-auto">
+  //             <CircleAlertIcon color={danger}></CircleAlertIcon>
+  //             <Text className="text-white">
+  //               Erro ao excluir conta. Tente novamente mais tarde.
+  //             </Text>
+
+  //           </Toast>
+  //         </SafeAreaView>
+  //       );
+  //     },
+  //   });
+  // };
+
+  const queryClient = useQueryClient();
+  const toast = useToastVariant()
   const { user } = useUser()
   const { getToken, signOut } = useAuth()
 
@@ -51,11 +116,13 @@ export default function Perfil() {
   const excluirConta = async () => {
     setMostrarDialogExclusao(false);
     try {
-      await excluirMutation.mutate(user!.id);
+      excluirMutation.mutate(user!.id);
       await signOut();
       router.replace('/(auth)/home')
+      toast.show("Conta excluída com sucesso!", "success")
     } catch (err) {
       console.error("Erro ao excluir usuário: ", err)
+      toast.show("Erro ao excluir conta. Tente novamente mais tarde.", "error")
     }
   }
 
@@ -168,11 +235,11 @@ export default function Perfil() {
 
           <SignOutButton />
 
-          <Button variant='solid' size='xl' className='w-full bg-red-600 data-[active=true]:bg-red-800' onPress={() => setMostrarDialogConfirmacao(true)}>
-
+          <Button variant='solid' size='xl' className='w-full bg-danger data-[active=true]:bg-danger/80' onPress={() => setMostrarDialogConfirmacao(true)}>
             <ButtonSpinner className={status === "pending" ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white' ></ButtonSpinner>
             <ButtonText className='text-white pl-4'>Excluir conta</ButtonText>
           </Button>
+
           <DialogConfirmarExcluir />
           <DialogExcluir />
 

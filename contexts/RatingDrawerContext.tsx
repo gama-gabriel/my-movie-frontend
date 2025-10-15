@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { createContext, useContext, useState } from 'react';
 import { useUser } from '@clerk/clerk-expo';
+import { useToastVariant } from '@/hooks/useToastVariant';
 
 interface Media {
   id: number;
@@ -27,6 +28,7 @@ export function RatingDrawerProvider({ children }: { children: React.ReactNode }
   const [isOpen, setIsOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Media | null>(null);
   const { user } = useUser();
+  const toast = useToastVariant()
 
   const rateMutation = useMutation({
     mutationFn: async ({ mediaId, rating }: { mediaId: number; rating: number }) => {
@@ -53,9 +55,11 @@ export function RatingDrawerProvider({ children }: { children: React.ReactNode }
       return response.json();
     },
     onSuccess: () => {
-      // // Invalidate and refetch the recommendations query
-      // queryClient.invalidateQueries({ queryKey: ['images'] });
-    },
+      toast.show("Avaliação realizada com sucesso!", "success")
+    }, 
+    onError: () => {
+      toast.show("Erro ao realizar avaliação.", "error")
+    }
   });
 
   const openDrawer = (movie: Media) => {

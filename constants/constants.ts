@@ -8,3 +8,6 @@ export const neutral900 = '#343037';
 export const neutral700 = '#5A535F';
 export const neutral500 = '#9F95A6';
 export const neutral100 = '#D5D1D9';
+export const danger = '#BF2B22';
+export const success = '#1A8D3D';
+export const warning = '#9D9121';
