@@ -1,8 +1,10 @@
 import SignOutButton from "@/app/components/SignOutButton";
 import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from "@/components/ui/alert-dialog";
-import { Button, ButtonText } from "@/components/ui/button";
+import { Button, ButtonSpinner, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
-import { SignedIn, SignedOut, useUser } from "@clerk/clerk-expo";
+import { protectedFetch } from "@/utils/Auth.utils";
+import { SignedIn, SignedOut, useAuth, useUser } from "@clerk/clerk-expo";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Redirect, useRouter } from "expo-router";
 import React from "react";
 import { View, Text } from "react-native";
@@ -10,8 +12,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Perfil() {
 
-  const router = useRouter();
+  const queryClient = useQueryClient();
+
   const { user } = useUser()
+  const { getToken, signOut } = useAuth()
+
+  const router = useRouter();
+
   const [mostrarDialogConfirmacao, setMostrarDialogConfirmacao] = React.useState(false);
   const [mostrarDialogExclusao, setMostrarDialogExclusao] = React.useState(false);
 
@@ -23,14 +30,36 @@ export default function Perfil() {
     setMostrarDialogExclusao(true);
   }
 
+  const excluirUsuarioFn = async (id: string) => {
+    const response = await protectedFetch('https://mymovie-nhhq.onrender.com/user/delete', getToken, {
+      method: 'DELETE',
+      body: JSON.stringify({ clerk_id: id }),
+    })
+
+    if (!response.ok) throw Error(JSON.stringify(response.body));
+
+    return response.json();
+  }
+
+  const excluirMutation = useMutation({
+    mutationFn: excluirUsuarioFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["images"] });
+    },
+  });
+
   const excluirConta = async () => {
+    setMostrarDialogExclusao(false);
     try {
-      await user?.delete()
+      await excluirMutation.mutate(user!.id);
+      await signOut();
       router.replace('/(auth)/home')
     } catch (err) {
-      console.error("Delete error", err)
+      console.error("Erro ao excluir usuário: ", err)
     }
   }
+
+  const { status } = excluirMutation
 
   const DialogConfirmarExcluir = () => {
     return (
@@ -140,7 +169,9 @@ export default function Perfil() {
           <SignOutButton />
 
           <Button variant='solid' size='xl' className='w-full bg-red-600 data-[active=true]:bg-red-800' onPress={() => setMostrarDialogConfirmacao(true)}>
-            <ButtonText className='text-white'>Excluir conta</ButtonText>
+
+            <ButtonSpinner className={status === "pending" ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white' ></ButtonSpinner>
+            <ButtonText className='text-white pl-4'>Excluir conta</ButtonText>
           </Button>
           <DialogConfirmarExcluir />
           <DialogExcluir />

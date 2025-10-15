@@ -38,7 +38,7 @@ const createUser = async (user: UserResource) => {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ clerk_id: user.id, email: user.emailAddresses[0].emailAddress, name: user.firstName + " " + user.lastName, password: "password" }),
+    body: JSON.stringify({ clerk_id: user.id, email: user.emailAddresses[0].emailAddress, name: user.firstName + " " + user.lastName }),
   });
 
   console.log(response)
