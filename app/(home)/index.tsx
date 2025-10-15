@@ -218,6 +218,7 @@ const fetchImagesBase = async (
               page_number: page,
               page_size: 10,
               refresh,
+              from_startup: true
             }),
           }
         );
