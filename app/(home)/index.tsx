@@ -198,7 +198,7 @@ const fetchImagesBase = async (
     }
 
     // 🧩 Step 3: User still has no ratings → recheck before deciding what to fetch
-    if (!hasRatings) {
+    if (!hasRatings && page === 1) {
       // 🔁 Recheck whether the user has now rated something
       const recheck = await fetch(
         `https://mymovie-nhhq.onrender.com/media/check_ratings?user=${clerkId}`,
