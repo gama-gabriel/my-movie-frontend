@@ -18,7 +18,7 @@ import EventBus from '@/utils/EventBus'
 
 
 interface Media {
-  id: number;
+  id: string;
   title: string;
   description: string;
   release_date: string;
@@ -350,7 +350,7 @@ export function ImageGallery() {
         ListHeaderComponent={HeaderList}
         className='flex flex-col gap-2 w-full'
         data={images}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id}
         refreshControl={
           <RefreshControl
             progressBackgroundColor={neutral700}
@@ -382,7 +382,7 @@ export function ImageGallery() {
               source={{ uri: `https://image.tmdb.org/t/p/w300/${item.backdrop_path}` }}
               style={{ width: "100%", height: 200, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
               cachePolicy="memory-disk"
-              recyclingKey={item.id.toString()}
+              recyclingKey={item.id}
               contentFit="cover"
               placeholder={{ blurhash }}
               transition={{ duration: 1000, timing: 'ease-in' }}

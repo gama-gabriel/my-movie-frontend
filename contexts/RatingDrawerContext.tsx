@@ -4,7 +4,7 @@ import { useUser } from '@clerk/clerk-expo';
 import { useToastVariant } from '@/hooks/useToastVariant';
 
 interface Media {
-  id: number;
+  id: string;
   title: string;
   description: string;
   release_date: string;
@@ -31,7 +31,7 @@ export function RatingDrawerProvider({ children }: { children: React.ReactNode }
   const toast = useToastVariant()
 
   const rateMutation = useMutation({
-    mutationFn: async ({ mediaId, rating }: { mediaId: number; rating: number }) => {
+    mutationFn: async ({ mediaId, rating }: { mediaId: string; rating: number }) => {
       const response = await fetch('https://mymovie-nhhq.onrender.com/media/rating', {
         method: 'POST',
         headers: {
