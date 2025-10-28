@@ -52,7 +52,7 @@ function LayoutContent({ router, pathname, insets }: {
           tabBarStyle: { display: 'none' },
         }}
       >
-        <Tabs.Screen name="index" options={{ title: 'Para você' }} />
+        <Tabs.Screen name="home" options={{ title: 'Para você' }} />
         <Tabs.Screen name="lancamentos" options={{ title: 'Lançamentos' }} />
       </Tabs>
 
@@ -60,13 +60,13 @@ function LayoutContent({ router, pathname, insets }: {
         <TabButton
           icon={Home}
           label="Para você"
-          route="/(home)"
+          route="/(tabs)/home"
           isSelected={pathname === "/" || pathname === "/index"}
         />
         <TabButton
           icon={Sparkles}
           label="Lançamentos"
-          route="/(home)/lancamentos"
+          route="/(tabs)/lancamentos"
           isSelected={pathname === "/lancamentos"}
         />
       </View>
@@ -77,7 +77,7 @@ function LayoutContent({ router, pathname, insets }: {
 type TabButtonProps = {
   icon: React.ComponentType<{ size?: number; color?: string }>;
   label: string;
-  route: '/(home)' | '/(home)/lancamentos';
+  route: '/(tabs)/home' | '/(tabs)/lancamentos';
   isSelected: boolean;
 };
 
@@ -89,7 +89,7 @@ function TabButton({ icon, label, route, isSelected }: TabButtonProps) {
   return (
     <Pressable
       onPress={() => {
-        if (isSelected && route === '/(home)') {
+        if (isSelected && route === '/(tabs)/home') {
           EventBus.emit('scrollToTopHome');
         } else {
           router.push(route);

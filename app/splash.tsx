@@ -17,7 +17,7 @@ export default function SplashScreen() {
   useEffect(() => {
     if (isLoaded && mounted) {
       if (isSignedIn) {
-        router.replace('/(home)');
+        router.replace('/(tabs)/home');
       } else {
         router.replace('/(auth)/home');
       }

@@ -42,10 +42,6 @@ export default function Page() {
         setActive!({
           session: createdSessionId,
         })
-        // Redirect to your app's main page after successful sign-in
-        // Adjust the path as necessary
-        //
-          // router.replace('/(home)')
       }
     } catch (err) {
       // See https://clerk.com/docs/custom-flows/error-handling

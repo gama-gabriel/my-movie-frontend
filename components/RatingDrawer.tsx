@@ -9,7 +9,7 @@ import { Star } from 'lucide-react-native';
 import { neutral700, primaryLight } from '@/constants/constants';
 
 export function RatingDrawer() {
-  const { isOpen, selectedMovie, closeDrawer, onRate } = useRatingDrawer();
+  const { isOpen, selectedMedia: selectedMovie, closeDrawer, onRate } = useRatingDrawer();
   const [rating, setRating] = useState(0);
 
   const handleClose = () => {

@@ -2,20 +2,11 @@ import { useMutation } from '@tanstack/react-query';
 import { createContext, useContext, useState } from 'react';
 import { useUser } from '@clerk/clerk-expo';
 import { useToastVariant } from '@/hooks/useToastVariant';
-
-interface Media {
-  id: string;
-  title: string;
-  description: string;
-  release_date: string;
-  poster_path: string;
-  backdrop_path: string;
-  is_movie: boolean;
-}
+import { Media } from '@/types/media.t';
 
 interface RatingDrawerContextType {
   isOpen: boolean;
-  selectedMovie: Media | null;
+  selectedMedia: Media | null;
   openDrawer: (movie: Media) => void;
   closeDrawer: () => void;
   onRate: (rating: number) => void;
@@ -91,7 +82,7 @@ export function RatingDrawerProvider({ children }: { children: React.ReactNode }
     <RatingDrawerContext.Provider
       value={{
         isOpen,
-        selectedMovie,
+        selectedMedia: selectedMovie,
         openDrawer,
         closeDrawer,
         onRate,

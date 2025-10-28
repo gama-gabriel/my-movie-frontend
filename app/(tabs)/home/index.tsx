@@ -1,7 +1,7 @@
 import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
-import { Text, ActivityIndicator, RefreshControl, View } from 'react-native'
+import { Text, ActivityIndicator, RefreshControl, View, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { QueryFunctionContext, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import Animated, { FadeOut } from 'react-native-reanimated';
@@ -11,26 +11,13 @@ import { FlashList, FlashListProps } from '@shopify/flash-list';
 import { debounce } from 'lodash';
 import { Badge, BadgeText } from '@/components/ui/badge'
 import { Star } from 'lucide-react-native'
-import { neutral700 } from '../../constants/constants'
+import { neutral700 } from '../../../constants/constants'
 import { useRatingDrawer } from '@/contexts/RatingDrawerContext';
 import { Skeleton } from 'moti/skeleton'
 import EventBus from '@/utils/EventBus'
-
-
-interface Media {
-  id: string;
-  title: string;
-  description: string;
-  release_date: string;
-  poster_path: string;
-  backdrop_path: string;
-
-  is_movie: boolean;
-}
-
-interface APIResponse {
-  media: Media[];
-}
+import { useRouter } from 'expo-router'
+import { Media, ResponseMedia } from '@/types/media.t'
+import { useMediaStore } from '@/hooks/useMediaStore'
 
 interface Pagina {
   media: Media[];
@@ -85,6 +72,8 @@ const HeaderList = () => (
   </View>
 );
 
+
+
 type ImagesQueryKey = readonly ['images'];
 const imagesQueryKey = (): ImagesQueryKey => ['images'] as const;
 
@@ -114,7 +103,7 @@ const fetchImagesBase = async (
           `https://mymovie-nhhq.onrender.com/media/startup_medias`,
           { signal }
         );
-        const curatedData: APIResponse = await curatedRes.json();
+        const curatedData: ResponseMedia = await curatedRes.json();
         return {
           media: curatedData.media,
           nextPage: 1,
@@ -149,7 +138,7 @@ const fetchImagesBase = async (
           `https://mymovie-nhhq.onrender.com/media/startup_medias`,
           { signal }
         );
-        const curatedData: APIResponse = await curatedRes.json();
+        const curatedData: ResponseMedia = await curatedRes.json();
         return {
           media: curatedData.media,
           nextPage: 1,
@@ -157,7 +146,7 @@ const fetchImagesBase = async (
         };
       }
 
-      const data: APIResponse = await recRes.json();
+      const data: ResponseMedia = await recRes.json();
       return {
         media: data.media,
         nextPage: data.media.length > 0 ? 2 : undefined,
@@ -189,7 +178,7 @@ const fetchImagesBase = async (
         }
       );
 
-      const data: APIResponse = await res.json();
+      const data: ResponseMedia = await res.json();
       return {
         media: data.media,
         nextPage: data.media.length > 0 ? page + 1 : undefined,
@@ -222,7 +211,7 @@ const fetchImagesBase = async (
             }),
           }
         );
-        const data: APIResponse = await recRes.json();
+        const data: ResponseMedia = await recRes.json();
         return {
           media: data.media,
           nextPage: data.media.length > 0 ? page + 1 : undefined,
@@ -236,7 +225,7 @@ const fetchImagesBase = async (
       `https://mymovie-nhhq.onrender.com/media/media?page=${page}&page_size=10`,
       { signal }
     );
-    const data: APIResponse = await res.json();
+    const data: ResponseMedia = await res.json();
 
     return {
       media: data.media,
@@ -266,13 +255,14 @@ export const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as AnimatedFlashListType<any>
 );
 
-export function ImageGallery() {
-  const { openDrawer } = useRatingDrawer();
+export function ListaMedias() {
   const queryClient = useQueryClient();
   const { user } = useUser();
   const clerkId = user?.id;
+
   const [refreshKey, setRefreshKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+
   const listRef = useRef<FlashList<Media> | null>(null);
 
   useEffect(() => {
@@ -337,7 +327,7 @@ export function ImageGallery() {
     );
   }
 
-  const blurhash = 'B0JH:g-;fQ_3fQfQ';
+
 
   return (
     <Animated.View
@@ -376,39 +366,7 @@ export function ImageGallery() {
         }
         estimatedItemSize={800}
         drawDistance={1200}
-        renderItem={({ item }) => (
-          <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
-            <Image
-              source={{ uri: `https://image.tmdb.org/t/p/w300/${item.backdrop_path}` }}
-              style={{ width: "100%", height: 200, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
-              cachePolicy="memory-disk"
-              recyclingKey={item.id}
-              contentFit="cover"
-              placeholder={{ blurhash }}
-              transition={{ duration: 1000, timing: 'ease-in' }}
-            />
-            <View className='p-4 gap-2 bg-white/5'>
-              <Text className='text-white font-bold m-0'>{item.title}</Text>
-              <View className='flex flex-row justify-between items-center gap-4'>
-                <Text className='text-neutral-500'>{item.release_date.slice(0, 4)}</Text>
-                <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
-                  <BadgeText>{item.is_movie ? "Filme" : "Série"}</BadgeText>
-                </Badge>
-              </View>
-
-              <View className='flex flex-row justify-end mt-2'>
-                <Button
-                  className='w-full bg-transparent border border-neutral-500 data-[active=true]:bg-neutral-700'
-                  onPress={() => openDrawer(item)}
-                >
-                  <ButtonIcon as={Star} color="#dddddd" />
-                  <ButtonText className='px-2'>Avaliar</ButtonText>
-                </Button>
-              </View>
-            </View>
-          </View>
-        )}
-        onEndReachedThreshold={1.5}
+        renderItem={({ item }) => <ImageItem item={item} />}
         onEndReached={handleEndReached}
         ListFooterComponent={
           isFetchingNextPage ? (
@@ -424,11 +382,73 @@ export function ImageGallery() {
   );
 }
 
+const ImageItem = ({ item }: { item: Media } ) => {
+
+  const router = useRouter();
+  const setMedia = useMediaStore((state) => state.setMedia);
+
+  const { openDrawer } = useRatingDrawer();
+
+  const handleIrParaDetalhes = (media: Media) => {
+    setMedia(media);
+    router.push({
+      pathname: "/(tabs)/home/detalhe",
+    });
+  };
+
+  const blurhash = 'B0JH:g-;fQ_3fQfQ';
+
+  const uri = `https://image.tmdb.org/t/p/w300/${item.backdrop_path}`;
+
+  return (
+    <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
+      <Pressable onPress={() => handleIrParaDetalhes(item)}>
+        <Image
+          source={{ uri }}
+          style={{ width: "100%", height: 200, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+          cachePolicy="memory-disk"
+          recyclingKey={item.id}
+          contentFit="cover"
+          placeholder={{ thumbhash: blurhash }}
+          transition={{ duration: 1000, timing: 'ease-in' }}
+        />
+      </Pressable>
+
+      <View className='p-4 gap-2 bg-white/5'>
+        <Pressable onPress={() => handleIrParaDetalhes(item)}>
+          <Text className='text-white font-bold m-0'>{item.title}</Text>
+        </Pressable>
+
+        <Pressable
+          className='flex flex-row justify-between items-center gap-4'
+          onPress={() => handleIrParaDetalhes(item)}
+        >
+          <Text className='text-neutral-500'>{item.release_date.slice(0, 4)}</Text>
+
+          <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
+            <BadgeText>{item.is_movie ? "Filme" : "Série"}</BadgeText>
+          </Badge>
+        </Pressable>
+
+        <View className='flex flex-row justify-end mt-2'>
+          <Button
+            className='w-full bg-transparent border border-neutral-500 data-[active=true]:bg-neutral-700'
+            onPress={() => openDrawer(item)}
+          >
+            <ButtonIcon as={Star} color="#dddddd" />
+            <ButtonText className='px-2'>Avaliar</ButtonText>
+          </Button>
+        </View>
+      </View>
+    </View>
+  );
+};
+
 export default function Page() {
   return (
     <>
       <SignedIn>
-        <ImageGallery />
+        <ListaMedias />
       </SignedIn>
 
       <SignedOut>
