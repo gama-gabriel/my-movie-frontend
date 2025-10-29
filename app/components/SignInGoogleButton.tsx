@@ -1,9 +1,11 @@
-import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
+import { ButtonIcon, ButtonText } from '@/components/ui/button'
 import { GoogleIcon } from '@/components/ui/icon'
 import { useSSO } from '@clerk/clerk-expo'
 import * as AuthSession from 'expo-auth-session'
 import * as WebBrowser from 'expo-web-browser'
 import React, { useCallback, useEffect } from 'react'
+import { AnimatedButton } from './AnimatedButton'
+import { neutral900 } from '@/constants/constants'
 
 export const useWarmUpBrowser = () => {
   useEffect(() => {
@@ -51,9 +53,9 @@ export default function Page() {
   }, [startSSOFlow])
 
   return (
-    <Button onPress={onPress} size='xl' variant='solid' action='primary' className='w-full bg-transparent rounded-full border border-neutral-500 transition data-[active=true]:bg-neutral-700 disabled:bg-primary-black'>
+    <AnimatedButton activeColor={neutral900} inactiveColor='transparent' onPress={onPress} size='xl' variant='solid' action='primary' className='w-full bg-transparent rounded-full border border-neutral-500 transition data-[active=true]:bg-neutral-700 disabled:bg-primary-black'>
       <ButtonIcon as={GoogleIcon} className='text-transparent'></ButtonIcon>
       <ButtonText className='data-[active=true]:text-white pl-4'>Continuar com Google</ButtonText>
-    </Button>
+    </AnimatedButton>
   )
 }

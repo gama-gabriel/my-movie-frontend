@@ -1,4 +1,4 @@
-import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button'
+import { ButtonSpinner, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { EyeIcon, EyeOffIcon, InfoIcon } from '@/components/ui/icon'
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
@@ -9,6 +9,8 @@ import { Keyboard, Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import SignInGoogleButton from '../components/SignInGoogleButton'
 import { Alert, AlertIcon, AlertText } from '@/components/ui/alert'
+import { primary, primaryDark } from '@/constants/constants'
+import { AnimatedButton } from '../components/AnimatedButton'
 
 export default function Page() {
   const { signIn, setActive, isLoaded } = useSignIn()
@@ -141,10 +143,10 @@ export default function Page() {
           </View>
         </View>
 
-        <Button onPress={onEntrarPress} variant='solid' action='primary' size='xl' className='w-full transition disabled:bg-primary-black'>
+        <AnimatedButton activeColor={primaryDark} inactiveColor={primary} onPress={onEntrarPress} variant='solid' action='primary' size='xl' className='w-full transition disabled:bg-primary-black'>
           <ButtonSpinner className={loading ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white' ></ButtonSpinner>
           <ButtonText className='text-white font-bold pl-4 data-[disabled=true]:text-neutral-500'>Continuar</ButtonText>
-        </Button>
+        </AnimatedButton>
 
 
 

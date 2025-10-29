@@ -94,7 +94,7 @@ export default function Detalhe() {
             <ButtonIcon as={Star} color="#dddddd" />
             <ButtonText>Avaliar</ButtonText>
           </AnimatedButton> */}
-          <View className='flex flex-col gap-2 w-full justify-center items-center pt-4'>
+          <View className='flex flex-col gap-2 w-full justify-center items-center'>
             <Text className='text-white text-lg'>Toque em uma estrela para avaliar</Text>
             <StarRating
               maxStars={5}

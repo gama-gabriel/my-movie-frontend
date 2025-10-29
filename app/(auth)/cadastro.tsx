@@ -1,4 +1,4 @@
-import { Button, ButtonSpinner, ButtonText } from '@/components/ui/button'
+import { ButtonSpinner, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { EyeIcon, EyeOffIcon, InfoIcon } from '@/components/ui/icon'
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
@@ -9,6 +9,8 @@ import { Keyboard, Pressable, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import SignInGoogleButton from '../components/SignInGoogleButton'
 import { Alert, AlertIcon, AlertText } from '@/components/ui/alert'
+import { AnimatedButton } from '../components/AnimatedButton'
+import { primary, primaryDark } from '@/constants/constants'
 
 export default function Cadastro() {
   const { isLoaded, signUp, setActive } = useSignUp()
@@ -168,10 +170,10 @@ export default function Cadastro() {
               <Text className={`text-red-300 ps-6 ${codigoValido ? 'invisible' : ''}`}>Código inválido</Text>
             </View>
 
-            <Button onPress={onVerifyPress} variant='solid' action='primary' size='xl' className='w-full transition disabled:bg-primary-black'>
+            <AnimatedButton activeColor={primaryDark} inactiveColor={primary} onPress={onVerifyPress} variant='solid' action='primary' size='xl' className='w-full transition disabled:bg-primary-black'>
               <ButtonSpinner className={loading ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white'></ButtonSpinner>
               <ButtonText className='text-white font-bold pl-4 data-[disabled=true]:text-neutral-500'>Verificar código</ButtonText>
-            </Button>
+            </AnimatedButton>
 
             {mensagemErroCodigo &&
               <Alert action="error" className="gap-3 w-full p-4 rounded-3xl">
@@ -278,10 +280,10 @@ export default function Cadastro() {
           </View>
         </View>
 
-        <Button onPress={onSignUpPress} variant='solid' action='primary' size='xl' className='w-full transition disabled:bg-primary-black'>
+        <AnimatedButton activeColor={primaryDark} inactiveColor={primary} onPress={onSignUpPress} variant='solid' action='primary' size='xl' className='w-full transition disabled:bg-primary-black'>
           <ButtonSpinner className={loading ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white'></ButtonSpinner>
           <ButtonText className='text-white font-bold pl-4 data-[disabled=true]:text-neutral-500'>Continuar</ButtonText>
-        </Button>
+        </AnimatedButton>
 
 
         <View className='flex-row'>

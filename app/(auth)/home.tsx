@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router'
 import { View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import SignInGoogleButton from '../components/SignInGoogleButton'
+import { AnimatedButton } from '../components/AnimatedButton'
+import { primary, primaryDark, secondary } from '@/constants/constants'
 
 export default function Page() {
   const router = useRouter();
@@ -25,13 +27,13 @@ export default function Page() {
       <View className='items-center justify-center gap-6 py-12 w-full'>
         <SignInGoogleButton />
 
-        <Button variant='solid' size='xl' className='w-full' onPress={redirectLogin}>
+        <AnimatedButton activeColor={primaryDark} inactiveColor={primary} size='xl' className='w-full' onPress={redirectLogin}>
           <ButtonText className='text-white'>Entrar</ButtonText>
-        </Button>
+        </AnimatedButton>
 
-        <Button variant='solid' action='secondary' size='xl' className='w-full' onPress={redirectCadastro}>
+        <AnimatedButton activeColor={`${secondary}80`} inactiveColor={secondary} size='xl' className='w-full' onPress={redirectCadastro}>
           <ButtonText className='text-white'>Criar conta</ButtonText>
-        </Button>
+        </AnimatedButton>
       </View>
     </SafeAreaView>
 
