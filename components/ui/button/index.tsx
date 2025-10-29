@@ -42,9 +42,9 @@ const buttonStyle = tva({
   variants: {
     action: {
       primary:
-        'bg-primary data-[hover=true]:bg-primary-dark data-[active=true]:bg-primary-dark',
+        '',
       secondary:
-        'bg-secondary data-[active=true]:bg-secondary',
+        '',
       positive:
         'bg-success-500 border-success-300 data-[hover=true]:bg-success-600 data-[hover=true]:border-success-400 data-[active=true]:bg-success-700 data-[active=true]:border-success-500 data-[focus-visible=true]:web:ring-indicator-info',
       negative:
@@ -124,19 +124,19 @@ const buttonTextStyle = tva({
   parentVariants: {
     action: {
       primary:
-        'text-white data-[hover=true]:text-neutral-100 data-[active=true]:text-neutral-100',
+        '',
       secondary:
-        'text-white data-[hover=true]:text-neutral-100 data-[active=true]:text-neutral-100',
+        '',
       positive:
         'text-success-600 data-[hover=true]:text-success-600 data-[active=true]:text-success-700',
       negative:
         'text-error-600 data-[hover=true]:text-error-600 data-[active=true]:text-error-700',
     },
     variant: {
-      link: 'data-[hover=true]:underline data-[active=true]:underline',
+      link: '',
       outline: '',
       solid:
-        'text-white data-[hover=true]:text-neutral-100 data-[active=true]:text-neurtal-100',
+        '',
     },
     size: {
       xs: 'text-xs',
@@ -151,49 +151,49 @@ const buttonTextStyle = tva({
       variant: 'solid',
       action: 'primary',
       class:
-        'text-white data-[hover=true]:text-neutral-100 data-[active=true]:text-neutral-100',
+        '',
     },
     {
       variant: 'solid',
       action: 'secondary',
       class:
-        'text-white data-[hover=true]:text-neutral-100 data-[active=true]:text-neutral-100',
+        '',
     },
     {
       variant: 'solid',
       action: 'positive',
       class:
-        'text-typography-0 data-[hover=true]:text-typography-0 data-[active=true]:text-typography-0',
+        '',
     },
     {
       variant: 'solid',
       action: 'negative',
       class:
-        'text-typography-0 data-[hover=true]:text-typography-0 data-[active=true]:text-typography-0',
+        '',
     },
     {
       variant: 'outline',
       action: 'primary',
       class:
-        'text-primary-500 data-[hover=true]:text-primary-500 data-[active=true]:text-primary-500',
+        '',
     },
     {
       variant: 'outline',
       action: 'secondary',
       class:
-        'text-typography-500 data-[hover=true]:text-primary-600 data-[active=true]:text-typography-700',
+        '',
     },
     {
       variant: 'outline',
       action: 'positive',
       class:
-        'text-primary-500 data-[hover=true]:text-primary-500 data-[active=true]:text-primary-500',
+        '',
     },
     {
       variant: 'outline',
       action: 'negative',
       class:
-        'text-primary-500 data-[hover=true]:text-primary-500 data-[active=true]:text-primary-500',
+        '',
     },
   ],
 });

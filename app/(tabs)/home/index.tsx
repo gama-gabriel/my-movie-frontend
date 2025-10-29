@@ -1,4 +1,3 @@
-import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
 import { Text, ActivityIndicator, RefreshControl, View, Pressable } from 'react-native'
@@ -10,14 +9,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlashList, FlashListProps } from '@shopify/flash-list';
 import { debounce } from 'lodash';
 import { Badge, BadgeText } from '@/components/ui/badge'
-import { Star } from 'lucide-react-native'
 import { neutral700 } from '../../../constants/constants'
 import { useRatingDrawer } from '@/contexts/RatingDrawerContext';
 import { Skeleton } from 'moti/skeleton'
 import EventBus from '@/utils/EventBus'
 import { useRouter } from 'expo-router'
 import { Media, ResponseMedia } from '@/types/media.t'
-import { useMediaStore } from '@/hooks/useMediaStore'
+import { useMediaRatingsStore, useMediaStore, useRatingStore } from '@/hooks/useMediaStore'
+import { StarRating } from '@/components/RatingDrawer'
 
 interface Pagina {
   media: Media[];
@@ -111,12 +110,6 @@ const fetchImagesBase = async (
         };
       }
 
-      console.log(JSON.stringify({
-        clerk_id: clerkId,
-        page_number: 1,
-        page_size: 10,
-        refresh,
-      }))
       const recRes = await fetch(
         `https://mymovie-nhhq.onrender.com/media/recommendations?refresh=${refresh}`,
         {
@@ -157,12 +150,6 @@ const fetchImagesBase = async (
     // 🧩 Step 2: User has ratings → keep fetching personalized recs
     if (hasRatings) {
 
-      console.log(JSON.stringify({
-        clerk_id: clerkId,
-        page_number: 1,
-        page_size: 10,
-        refresh,
-      }))
       const res = await fetch(
         `https://mymovie-nhhq.onrender.com/media/recommendations`,
         {
@@ -243,7 +230,6 @@ const fetchImages = async (
   clerkId?: string,
   hasRatings?: boolean
 ): Promise<Pagina> => {
-  // force pageParam to be a number
   const pageParam = (ctx.pageParam ?? 0) as number;
   const { signal, meta } = ctx;
 
@@ -382,15 +368,30 @@ export function ListaMedias() {
   );
 }
 
-const ImageItem = ({ item }: { item: Media } ) => {
+const ImageItem = ({ item }: { item: Media }) => {
 
   const router = useRouter();
   const setMedia = useMediaStore((state) => state.setMedia);
+  const setRatingStore = useRatingStore((state) => state.setRating);
 
-  const { openDrawer } = useRatingDrawer();
+  // const { openDrawer } = useRatingDrawer();
+  const { onRate } = useRatingDrawer();
+  const [rating, setRating] = useState(0);
+  const currentRating = useMediaRatingsStore((s) => s.getRating(item.id));
 
-  const handleIrParaDetalhes = (media: Media) => {
+  const handleRatingChange = (newRating: number) => {
+    setRating(newRating);
+    onRate(newRating, item);
+  }
+
+  const handleIrParaDetalhes = (media: Media, rating: number) => {
     setMedia(media);
+    if (currentRating) {
+      setRatingStore(currentRating);
+    } else {
+      setRatingStore(rating);
+    }
+
     router.push({
       pathname: "/(tabs)/home/detalhe",
     });
@@ -398,14 +399,14 @@ const ImageItem = ({ item }: { item: Media } ) => {
 
   const blurhash = 'B0JH:g-;fQ_3fQfQ';
 
-  const uri = `https://image.tmdb.org/t/p/w300/${item.backdrop_path}`;
+  const uri = `https://image.tmdb.org/t/p/original/${item.backdrop_path}`;
 
   return (
-    <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
-      <Pressable onPress={() => handleIrParaDetalhes(item)}>
+    <View key={currentRating} className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
+      <Pressable onPress={() => handleIrParaDetalhes(item, rating)}>
         <Image
           source={{ uri }}
-          style={{ width: "100%", height: 200, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+          style={{ width: "100%", aspectRatio: 3 / 2, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
           cachePolicy="memory-disk"
           recyclingKey={item.id}
           contentFit="cover"
@@ -415,13 +416,13 @@ const ImageItem = ({ item }: { item: Media } ) => {
       </Pressable>
 
       <View className='p-4 gap-2 bg-white/5'>
-        <Pressable onPress={() => handleIrParaDetalhes(item)}>
+        <Pressable onPress={() => handleIrParaDetalhes(item, rating)}>
           <Text className='text-white font-bold m-0'>{item.title}</Text>
         </Pressable>
 
         <Pressable
           className='flex flex-row justify-between items-center gap-4'
-          onPress={() => handleIrParaDetalhes(item)}
+          onPress={() => handleIrParaDetalhes(item, rating)}
         >
           <Text className='text-neutral-500'>{item.release_date.slice(0, 4)}</Text>
 
@@ -430,14 +431,27 @@ const ImageItem = ({ item }: { item: Media } ) => {
           </Badge>
         </Pressable>
 
-        <View className='flex flex-row justify-end mt-2'>
-          <Button
-            className='w-full bg-transparent border border-neutral-500 data-[active=true]:bg-neutral-700'
+        {/* <View className='flex flex-row justify-end mt-2' >
+          <AnimatedButton
+            activeColor={neutral700}
+            inactiveColor='transparent'
+            className='w-full border border-neutral-500 '
             onPress={() => openDrawer(item)}
           >
             <ButtonIcon as={Star} color="#dddddd" />
             <ButtonText className='px-2'>Avaliar</ButtonText>
-          </Button>
+          </AnimatedButton>
+        </View> */}
+
+        <View className='flex flex-col gap-2 w-full justify-center items-center pt-4'>
+          <Text className='text-white text-lg'>Toque em uma estrela para avaliar</Text>
+          <StarRating
+            maxStars={5}
+            size={48}
+            rating={currentRating ? currentRating : rating}
+            disabled={rating > 0 || currentRating !== undefined}
+            onRatingChange={handleRatingChange}
+          />
         </View>
       </View>
     </View>

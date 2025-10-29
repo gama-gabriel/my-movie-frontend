@@ -1,119 +1,72 @@
-import { useRouter, withLayoutContext, usePathname } from 'expo-router';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { View, Pressable, Text } from 'react-native';
-import { Home, Sparkles, UserRound } from 'lucide-react-native';
-import { Icon } from '@/components/ui/icon';
+import { Tabs, useRouter } from 'expo-router';
+import { View, Text, Pressable } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Icon } from '@/components/ui/icon';
+import { Home, Sparkles, UserRound } from 'lucide-react-native';
 import { RatingDrawer } from '@/components/RatingDrawer';
 import { RatingDrawerProvider } from '@/contexts/RatingDrawerContext';
-import EventBus from '@/utils/EventBus';
-
-const Tab = createMaterialTopTabNavigator();
-
-export const Tabs = withLayoutContext(Tab.Navigator);
+import { neutral900, primaryLight } from '@/constants/constants';
 
 export default function Layout() {
-  const router = useRouter();
-  const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   return (
     <RatingDrawerProvider>
-      <LayoutContent router={router} pathname={pathname} insets={insets} />
-      <RatingDrawer />
-    </RatingDrawerProvider>
-  );
-}
-
-function LayoutContent({ router, pathname, insets }: {
-  router: ReturnType<typeof useRouter>;
-  pathname: string;
-  insets: ReturnType<typeof useSafeAreaInsets>;
-}) {
-
-  return (
-    <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-black">
-      <View className='absolute w-full left-0 z-10 h-20 bg-black/90 border-b border-neutral-900'
-        style={{
-          top: insets.top,
-        }}
-      >
-        <View className="flex-row items-center justify-between p-6 h-full">
-          <Text className="text-white text-lg font-bold">LOGO</Text>
-          <Pressable onPress={() => router.push('/perfil')} className="p-3 rounded-full bg-neutral-900">
-            <Icon as={UserRound}></Icon>
-          </Pressable>
+      <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-black">
+        {/* Custom Header */}
+        <View
+          className="absolute w-full left-0 z-10 h-20 bg-black/90 border-b border-neutral-900"
+          style={{ top: insets.top }}
+        >
+          <View className="flex-row items-center justify-between p-6 h-full">
+            <Text className="text-white text-lg font-bold">LOGO</Text>
+            <Pressable
+              onPress={() => router.push('/perfil')}
+              className="p-3 rounded-full bg-neutral-900"
+            >
+              <Icon as={UserRound} />
+            </Pressable>
+          </View>
         </View>
-      </View>
-      <Tabs
-        screenOptions={{
-          sceneStyle: { backgroundColor: 'transparent' },
-          swipeEnabled: true,
-          tabBarStyle: { display: 'none' },
-        }}
-      >
-        <Tabs.Screen name="home" options={{ title: 'Para você' }} />
-        <Tabs.Screen name="lancamentos" options={{ title: 'Lançamentos' }} />
-      </Tabs>
 
-      <View className="flex-row bg-black border-t border-neutral-900 justify-around p-3">
-        <TabButton
-          icon={Home}
-          label="Para você"
-          route="/(tabs)/home"
-          isSelected={pathname === "/" || pathname === "/index"}
-        />
-        <TabButton
-          icon={Sparkles}
-          label="Lançamentos"
-          route="/(tabs)/lancamentos"
-          isSelected={pathname === "/lancamentos"}
-        />
-      </View>
-    </SafeAreaView>
-  );
-}
+        <Tabs
+          screenOptions={{
+            tabBarActiveTintColor: primaryLight,
+            tabBarStyle: {
+              backgroundColor: '#000',
+              elevation: 0,
+              shadowOpacity: 0
+            },
+            headerShown: false
+          }}
+        >
+          <Tabs.Screen
+            name="home"
+            options={{
+              title: 'Para você',
+              tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000' },
+              tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
+              tabBarIcon: ({ color }) => (
+                <Icon as={Home} style={{ width: 20, height: 20, color: color }} />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="lancamentos"
+            options={{
+              title: 'Lançamentos',
+              tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000' },
+              tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
+              tabBarIcon: ({ color }) => (
+                <Icon as={Sparkles} style={{ width: 20, height: 20, color: color }} />
+              ),
+            }}
+          />
+        </Tabs>
 
-type TabButtonProps = {
-  icon: React.ComponentType<{ size?: number; color?: string }>;
-  label: string;
-  route: '/(tabs)/home' | '/(tabs)/lancamentos';
-  isSelected: boolean;
-};
-
-function TabButton({ icon, label, route, isSelected }: TabButtonProps) {
-  const router = useRouter();
-  const activeColor = "#df9eff";
-  const inactiveColor = "white";
-
-  return (
-    <Pressable
-      onPress={() => {
-        if (isSelected && route === '/(tabs)/home') {
-          EventBus.emit('scrollToTopHome');
-        } else {
-          router.push(route);
-        }
-      }}
-      className="items-center gap-1"
-    >
-      <Icon
-        as={icon}
-        style={{
-          color: isSelected ? activeColor : inactiveColor,
-          width: 20,
-          height: 20
-        }}
-      />
-      <Text
-        style={{
-          color: "white",
-          fontSize: 12,
-          fontWeight: '600'
-        }}
-      >
-        {label}
-      </Text>
-    </Pressable>
+        <RatingDrawer />
+      </SafeAreaView>
+    </RatingDrawerProvider>
   );
 }

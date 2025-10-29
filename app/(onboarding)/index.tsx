@@ -91,7 +91,7 @@ export default function Onboarding() {
   }
 
   if (userExists?.exists) {
-    return <Redirect href="/(tabs)" />
+    return <Redirect href="/(tabs)/home" />
   }
 
   if (!userExists?.exists && createdUser) {

@@ -9,7 +9,7 @@ interface RatingDrawerContextType {
   selectedMedia: Media | null;
   openDrawer: (movie: Media) => void;
   closeDrawer: () => void;
-  onRate: (rating: number) => void;
+  onRate: (rating: number, media?: Media) => void;
   isRating: boolean;
 }
 
@@ -63,7 +63,7 @@ export function RatingDrawerProvider({ children }: { children: React.ReactNode }
     setSelectedMovie(null);
   };
 
-  const onRate = async (rating: number) => {
+  const onRate = async (rating: number, media?: Media) => {
     if (selectedMovie && user) {
       try {
         await rateMutation.mutateAsync({
@@ -76,6 +76,18 @@ export function RatingDrawerProvider({ children }: { children: React.ReactNode }
       }
     }
     closeDrawer();
+
+    if (media) {
+      try {
+        await rateMutation.mutateAsync({
+          mediaId: media.id,
+          rating,
+        });
+        console.log(`Successfully rated ${media.title} with ${rating} stars`);
+      } catch (error) {
+        console.error('Error rating media:', error);
+      }
+    }
   };
 
   return (

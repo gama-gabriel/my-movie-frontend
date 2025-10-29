@@ -38,6 +38,7 @@ export function RatingDrawer() {
         </DrawerHeader>
         <DrawerBody >
           <View className='flex flex-col gap-4 w-full justify-center items-center'>
+            {}
             <StarRating
               maxStars={5}
               size={48}
@@ -111,7 +112,6 @@ export const StarRating = ({
         key={i}
         onPress={() => handlePress(i)}
         disabled={disabled}
-        className={disabled ? 'opacity-50' : ''}
       >
         <View>
           <Star

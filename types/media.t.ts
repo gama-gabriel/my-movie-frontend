@@ -8,6 +8,7 @@ export interface Media {
   is_movie: boolean;
   similarity_score: number;
   cast: CastMember[]
+  genres: string[];
 }
 
 export interface ResponseMedia {
@@ -18,5 +19,5 @@ export interface CastMember {
     role?: string;
     name?: string;
     character_name?: string;
-
+    profile_path: string;
 }
