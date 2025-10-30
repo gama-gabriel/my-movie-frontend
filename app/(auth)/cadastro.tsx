@@ -1,5 +1,4 @@
 import { ButtonSpinner, ButtonText } from '@/components/ui/button'
-import { Heading } from '@/components/ui/heading'
 import { EyeIcon, EyeOffIcon, InfoIcon } from '@/components/ui/icon'
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
 import { useSignUp } from '@clerk/clerk-expo'
@@ -11,10 +10,17 @@ import SignInGoogleButton from '../components/SignInGoogleButton'
 import { Alert, AlertIcon, AlertText } from '@/components/ui/alert'
 import { AnimatedButton } from '../components/AnimatedButton'
 import { primary, primaryDark } from '@/constants/constants'
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
+const AnimatedAlert = Animated.createAnimatedComponent(Alert);
 
 export default function Cadastro() {
   const { isLoaded, signUp, setActive } = useSignUp()
   const router = useRouter();
+
+  const [nome, setNome] = React.useState('')
+  const [nomeValido, setNomeValido] = React.useState(true)
 
   const [email, setEmail] = React.useState('')
   const [emailValido, setEmailValido] = React.useState(true)
@@ -33,6 +39,11 @@ export default function Cadastro() {
   const [mensagemErroCodigo, setMensagemErroCodigo] = React.useState('')
 
   const [loading, setLoading] = React.useState(false)
+
+  const checkNome = (nome: string): boolean => {
+    setNomeValido(nome.length > 0)
+    return nome.length > 0
+  }
 
   const checkEmail = (email: string): boolean => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -72,10 +83,11 @@ export default function Cadastro() {
 
   // Handle submission of sign-up form
   const onSignUpPress = async () => {
+    const validacaoNome = checkNome(nome)
     const validacaoEmail = checkEmail(email)
     const validacaoSenha = checkSenha(senha)
     const validacaoSenhasIguais = checkSenhasIguais()
-    if (!validacaoEmail || !validacaoSenha || !validacaoSenhasIguais) return
+    if (!validacaoNome || !validacaoEmail || !validacaoSenha || !validacaoSenhasIguais) return
 
     if (!isLoaded) return
 
@@ -85,6 +97,7 @@ export default function Cadastro() {
     // Start sign-up process using email and password provided
     try {
       await signUp.create({
+        // username: nome,
         emailAddress: email,
         password: senha,
       })
@@ -143,47 +156,68 @@ export default function Cadastro() {
     return (
       <SafeAreaView edges={['top']} className='flex-1 items-center justify-start p-4 bg-black'>
         <Pressable className='w-full h-full items-center justify-start gap-4' onPress={() => { Keyboard.dismiss() }}>
-          <Heading size={'2xl'} className='text-white py-2'>Verificar e-mail</Heading>
+          <View className='flex flex-col py-6 items-center'>
+            <Text className="m-0 text-4xl font-bold text-white">
+              Verificar e-mail
+            </Text>
+          </View>
 
-          <View className="rounded-2xl items-start px-4 pt-2 pb-8 w-full gap-8">
+          <View className="rounded-2xl items-start px-4 w-full gap-6">
             <Alert action="info" className="gap-3 w-full p-4 rounded-3xl">
               <AlertIcon as={InfoIcon} size="xl" className="fill-none text-blue-500" />
               <AlertText size="lg" className='text-white pe-4 ps-4 flex-1 flex-wrap'>
                 O seu código de verificação foi enviado ao e-mail {email}
               </AlertText>
             </Alert>
+
             <View className='flex flex-col w-full gap-1'>
 
-              <Text className='text-white pb-1 ps-6 font-bold w-fit'>Código de verificação</Text>
-
+              <Text className='text-white pb-1 ps-4 font-bold w-fit'>Código de verificação</Text>
               <Input size='xl' isInvalid={!codigoValido}>
                 <InputField
                   keyboardType='numeric'
                   autoCapitalize="none"
                   value={codigo}
                   placeholder="Digite o seu código de verificação"
-                  onChangeText={(code) => checkCodigo(code)}
+                  onChangeText={(code) => {
+                    setCodigo(code)
+                    setCodigoValido(true)
+                  }}
                   onSubmitEditing={onVerifyPress}
                   type='text'
                 />
               </Input>
-              <Text className={`text-red-300 ps-6 ${codigoValido ? 'invisible' : ''}`}>Código inválido</Text>
+
+              <View className="ps-4 pt-0 pb-2">
+                {!codigoValido && (
+                  <Animated.Text
+                    entering={FadeIn.duration(200).springify().withInitialValues({
+                      transform: [{ translateY: 20 }],
+                    })}
+                    exiting={FadeOut.duration(200).springify().withInitialValues({
+                      transform: [{ translateY: -20 }],
+                    })}
+                    className="text-red-300"
+                  >
+                    Código inválido
+                  </Animated.Text>
+                )}
+              </View>
             </View>
+
+            {mensagemErroCodigo &&
+              <AnimatedAlert action="error" className="gap-3 w-full p-4 rounded-3xl">
+                <AlertIcon as={InfoIcon} size="xl" className="fill-none text-danger" />
+                <AlertText size="lg" className='text-white pe-4 ps-4 flex-1 flex-wrap'>
+                  {mensagemErroCodigo}
+                </AlertText>
+              </AnimatedAlert>
+            }
 
             <AnimatedButton activeColor={primaryDark} inactiveColor={primary} onPress={onVerifyPress} variant='solid' action='primary' size='xl' className='w-full transition disabled:bg-primary-black'>
               <ButtonSpinner className={loading ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white'></ButtonSpinner>
               <ButtonText className='text-white font-bold pl-4 data-[disabled=true]:text-neutral-500'>Verificar código</ButtonText>
             </AnimatedButton>
-
-            {mensagemErroCodigo &&
-              <Alert action="error" className="gap-3 w-full p-4 rounded-3xl">
-                <AlertIcon as={InfoIcon} size="xl" className="fill-none text-red-500" />
-                <AlertText size="lg" className='text-white pe-4 ps-4 flex-1 flex-wrap'>
-                  {mensagemErroCodigo}
-                </AlertText>
-              </Alert>
-            }
-
           </View>
 
         </Pressable>
@@ -192,110 +226,226 @@ export default function Cadastro() {
   }
 
   return (
-    <SafeAreaView edges={['top']} className='flex-1 items-center justify-start p-4 bg-black'>
-      <Pressable className='w-full h-full items-center justify-start gap-4' onPress={() => { Keyboard.dismiss() }}>
+    <SafeAreaView edges={['top']} className='flex-1 bg-black p-4'>
+      <KeyboardAwareScrollView
+        contentContainerStyle={{ padding: 0 }}
+        enableAutomaticScroll={true}
+        enableResetScrollToCoords={false}
+        extraScrollHeight={80}
+        enableOnAndroid
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        style={{ flex: 1, backgroundColor: 'black', padding: 0, margin: 0 }}
+      >
 
-        <Heading className="m-0 text-4xl font-bold text-white">
-          Cadastro
-        </Heading>
-
-        <SignInGoogleButton />
-
-        <View className='text-neutral-100 p-0'>
-          <Text className='text-neutral-100 w-fit font-bold'>ou</Text>
-        </View>
-
-        <View className='w-full flex flex-col gap-2 pb-6'>
-          <View className='flex flex-col w-full gap-1'>
-            <Text className='text-white pb-1 ps-6 font-bold'>E-mail</Text>
-            <Input size='xl' isInvalid={!emailValido}>
-              <InputField
-                className='autofill:bg-transparent bg-red-900'
-                autoCapitalize="none"
-                value={email}
-                placeholder="seuemail@email.com"
-                onChangeText={(email) => setEmail(email)}
-                type='text'
-                onBlur={() => { checkEmail(email) }}
-                autoComplete='email'
-              />
-            </Input>
-
-            <Text className={`text-red-300 ps-6 ${emailValido ? 'invisible' : ''}`}>E-mail inválido</Text>
-
+        <View className='flex flex-1 w-full items-center justify-start gap-4 pb-12'>
+          <View className='flex flex-col py-6 gap-4 items-center'>
+            <Text className="m-0  text-4xl font-bold text-white">
+              Criar conta
+            </Text>
+            <Text className="m-0 text-lg text-neutral-100">
+              Cadastre-se para começar a usar o MyMovie
+            </Text>
           </View>
 
-          <View className='flex flex-col w-full gap-1'>
-            <Text className='text-white pb-1 ps-6 font-bold'>Senha</Text>
+          <SignInGoogleButton />
 
-            <Input size='xl' isInvalid={!senhaValida}>
-              <InputField
-                value={senha}
-                onChangeText={(password) => checkSenha(password)}
-                onBlur={() => checkSenhasIguais()}
-                type={mostrarSenha ? 'text' : 'password'}
-                autoCapitalize='none'
-                autoComplete='password'
-                placeholder='No mímimo 8 caracteres' />
-
-              <InputSlot className="pr-6" onPress={handleState}>
-                <InputIcon as={mostrarSenha ? EyeIcon : EyeOffIcon} />
-              </InputSlot>
-            </Input>
-
-            <Text className={`text-red-300 ps-6 ${senhaValida ? 'invisible' : ''}`}>Senha inválida</Text>
-
+          <View className='w-full'>
+            <View className="relative my-4">
+              <View className="relative flex-row justify-center z-10">
+                <Text className=" bg-black text-center text-neutral-100 text-sm px-2">
+                  Ou continue com
+                </Text>
+              </View>
+              <View className="absolute inset-0 flex-row items-center z-0">
+                <View className="w-full border-t border-neutral-500" />
+              </View>
+            </View>
           </View>
 
-          <View className='flex flex-col w-full gap-1'>
-            <Text className='text-white pb-1 ps-6 font-bold'>Confirmar senha</Text>
+          <View className='w-full flex flex-col gap-2 pb-6'>
+            <View className='flex flex-col w-full gap-1'>
+              <Text className='text-white pb-1 ps-4 font-bold'>Nome</Text>
+              <Input size='xl' isInvalid={!nomeValido}>
+                <InputField
+                  className='autofill:bg-transparent bg-red-900'
+                  autoCapitalize="none"
+                  value={nome}
+                  placeholder="Seu nome de usuário"
+                  spellCheck={false}
+                  onChangeText={(nome) => {
+                    setNome(nome)
+                    setNomeValido(true)
+                  }}
+                  type='text'
+                  autoComplete='name'
+                />
+              </Input>
+              <View className="ps-4 pt-1 pb-2">
+                {!nomeValido && (
+                  <Animated.Text
+                    entering={FadeIn.duration(200).springify().withInitialValues({
+                      transform: [{ translateY: 20 }],
+                    })}
+                    exiting={FadeOut.duration(200).springify().withInitialValues({
+                      transform: [{ translateY: -20 }],
+                    })}
+                    className="text-red-300"
+                  >
+                    Nome inválido
+                  </Animated.Text>
+                )}
+              </View>
 
-            <Input size='xl' isInvalid={!senhasIguais}>
-              <InputField
-                value={senhaConfirmada}
-                onChangeText={(password) => changeSenhaConfirmada(password)}
-                onBlur={() => checkSenhasIguais()}
-                type={mostrarSenha ? 'text' : 'password'}
-                onSubmitEditing={onSignUpPress}
-                autoCapitalize='none'
-                autoComplete='password'
-                placeholder='No mímimo 8 caracteres' />
+            </View>
 
-              <InputSlot className="pr-6" onPress={handleState}>
-                <InputIcon as={mostrarSenha ? EyeIcon : EyeOffIcon} />
-              </InputSlot>
-            </Input>
+            <View className='flex flex-col w-full gap-1'>
+              <Text className='text-white pb-1 ps-4 font-bold'>E-mail</Text>
+              <Input size='xl' isInvalid={!emailValido}>
+                <InputField
+                  className='autofill:bg-transparent bg-red-900'
+                  autoCapitalize="none"
+                  value={email}
+                  placeholder="seuemail@email.com"
+                  onChangeText={(email) => {
+                    setEmail(email)
+                    setEmailValido(true)
+                  }}
+                  type='text'
+                  autoComplete='email'
+                />
+              </Input>
+              <View className="ps-4 pt-1 pb-2">
+                {!emailValido && (
+                  <Animated.Text
+                    entering={FadeIn.duration(200).springify().withInitialValues({
+                      transform: [{ translateY: 20 }],
+                    })}
+                    exiting={FadeOut.duration(200).springify().withInitialValues({
+                      transform: [{ translateY: -20 }],
+                    })}
+                    className="text-red-300"
+                  >
+                    E-mail inválido
+                  </Animated.Text>
+                )}
+              </View>
+            </View>
 
-            <Text className={`text-red-300 ps-6 ${senhasIguais ? 'invisible' : ''}`}>Senhas não conferem</Text>
+            <View className='flex flex-col w-full gap-1'>
+              <Text className='text-white pb-1 ps-4 font-bold'>Senha</Text>
 
-            {mensagemErroCadastro &&
-              <Alert action="error" className="gap-3 w-full p-4 rounded-3xl">
-                <AlertIcon as={InfoIcon} size="xl" className="fill-none text-red-500" />
-                <AlertText size="lg" className='text-white pe-4 ps-4 flex-1 flex-wrap'>
-                  {mensagemErroCadastro}
-                </AlertText>
-              </Alert>
-            }
+              <Input size='xl' isInvalid={!senhaValida}>
+                <InputField
+                  value={senha}
+                  onChangeText={(password) => {
+                    setSenha(password)
+                    setSenhaValida(true)
+                    setSenhasIguais(true)
+                  }}
+                  type={mostrarSenha ? 'text' : 'password'}
+                  autoCapitalize='none'
+                  autoComplete='password'
+                  placeholder='No mímimo 8 caracteres' />
 
+                <InputSlot className="pr-6" onPress={handleState}>
+                  <InputIcon as={mostrarSenha ? EyeIcon : EyeOffIcon} />
+                </InputSlot>
+              </Input>
+
+              <View className="ps-4 pt-1 pb-2">
+                {!senhaValida && (
+                  <Animated.Text
+
+                    entering={FadeIn.duration(200).springify().withInitialValues({
+                      transform: [{ translateY: 20 }],
+                    })}
+                    exiting={FadeOut.duration(200).springify().withInitialValues({
+                      transform: [{ translateY: -20 }],
+                    })}
+                    className="text-red-300"
+                  >
+                    Senha inválida
+                  </Animated.Text>
+                )}
+              </View>
+
+            </View>
+
+            <View className='flex flex-col w-full gap-1'>
+              <Text className='text-white pb-1 ps-4 font-bold'>Confirmar senha</Text>
+
+              <Input size='xl' isInvalid={!senhasIguais}>
+                <InputField
+                  value={senhaConfirmada}
+                  onChangeText={(password) => {
+                    changeSenhaConfirmada(password)
+                    setSenhasIguais(true)
+                  }}
+                  onBlur={() => checkSenhasIguais()}
+                  type={mostrarSenha ? 'text' : 'password'}
+                  onSubmitEditing={onSignUpPress}
+                  autoCapitalize='none'
+                  autoComplete='password'
+                  placeholder='No mímimo 8 caracteres' />
+
+                <InputSlot className="pr-6" onPress={handleState}>
+                  <InputIcon as={mostrarSenha ? EyeIcon : EyeOffIcon} />
+                </InputSlot>
+              </Input>
+
+              <View className="ps-4 pt-1 pb-2">
+                {!senhasIguais && (
+                  <Animated.Text
+
+                    entering={FadeIn.duration(200).springify().withInitialValues({
+                      transform: [{ translateY: 20 }],
+                    })}
+                    exiting={FadeOut.duration(200).springify().withInitialValues({
+                      transform: [{ translateY: -20 }],
+                    })}
+                    className="text-red-300"
+                  >
+                    Senhas não conferem
+                  </Animated.Text>
+                )}
+              </View>
+
+              {mensagemErroCadastro &&
+                <AnimatedAlert
+                  entering={FadeIn.duration(100).springify().withInitialValues({
+                    transform: [{ translateY: 20 }],
+                  })}
+                  exiting={FadeOut.duration(100).springify().withInitialValues({
+                    transform: [{ translateY: -20 }],
+                  })}
+                  action="error"
+                  className="gap-3 w-full p-4 rounded-3xl">
+                  <AlertIcon as={InfoIcon} size="xl" className="fill-none text-danger" />
+                  <AlertText size="lg" className='text-white pe-4 ps-4 flex-1 flex-wrap'>
+                    {mensagemErroCadastro}
+                  </AlertText>
+                </AnimatedAlert>
+              }
+
+            </View>
+          </View>
+
+          <AnimatedButton activeColor={primaryDark} inactiveColor={primary} onPress={onSignUpPress} variant='solid' action='primary' size='xl' className='w-full'>
+            <ButtonSpinner className={loading ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white'></ButtonSpinner>
+            <ButtonText className='text-white font-bold pl-4 data-[disabled=true]:text-neutral-500'>Continuar</ButtonText>
+          </AnimatedButton>
+
+          <View className='flex-row'>
+            <Text className='text-white'>Já possui uma conta?</Text>
+
+            <Link href="/(auth)/login">
+              <Text className='text-primary-light'> Entrar</Text>
+            </Link>
           </View>
         </View>
 
-        <AnimatedButton activeColor={primaryDark} inactiveColor={primary} onPress={onSignUpPress} variant='solid' action='primary' size='xl' className='w-full transition disabled:bg-primary-black'>
-          <ButtonSpinner className={loading ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white'></ButtonSpinner>
-          <ButtonText className='text-white font-bold pl-4 data-[disabled=true]:text-neutral-500'>Continuar</ButtonText>
-        </AnimatedButton>
-
-
-        <View className='flex-row'>
-          <Text className='text-white'>Já possui uma conta?</Text>
-
-          <Link href="/(auth)/login">
-            <Text className='text-primary-light'> Entrar</Text>
-          </Link>
-        </View>
-
-
-      </Pressable>
+      </KeyboardAwareScrollView>
 
     </SafeAreaView>
   )

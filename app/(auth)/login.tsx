@@ -1,5 +1,4 @@
 import { ButtonSpinner, ButtonText } from '@/components/ui/button'
-import { Heading } from '@/components/ui/heading'
 import { EyeIcon, EyeOffIcon, InfoIcon } from '@/components/ui/icon'
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
 import { useSignIn } from '@clerk/clerk-expo'
@@ -11,6 +10,9 @@ import SignInGoogleButton from '../components/SignInGoogleButton'
 import { Alert, AlertIcon, AlertText } from '@/components/ui/alert'
 import { primary, primaryDark } from '@/constants/constants'
 import { AnimatedButton } from '../components/AnimatedButton'
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
+
+const AnimatedAlert = Animated.createAnimatedComponent(Alert);
 
 export default function Page() {
   const { signIn, setActive, isLoaded } = useSignIn()
@@ -30,12 +32,13 @@ export default function Page() {
   const checkEmail = (email: string) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
     setEmailValido(emailRegex.test(email))
+    return emailRegex.test(email)
   }
 
   const checkSenha = (senha: string) => {
-    setSenha(senha)
     const senhaRegex = /^.{8,64}$/
     setSenhaValida(senhaRegex.test(senha))
+    return senhaRegex.test(senha)
   }
 
   const handleState = () => {
@@ -46,79 +49,125 @@ export default function Page() {
 
   // Handle the submission of the sign-in form
   const onEntrarPress = async () => {
-    if (!emailValido || !senhaValida) return
     if (!isLoaded) return
 
-    setLoading(true)
+    checkEmail(email)
+    checkSenha(senha)
 
-    setMensagemErro(null)
+    if ((checkEmail(email)) && checkSenha(senha)) {
+      setLoading(true)
 
-    // Start the sign-in process using the email and password provided
-    try {
-      const signInAttempt = await signIn.create({
-        identifier: email,
-        password: senha,
-      })
+      setMensagemErro(null)
 
-      // If sign-in process is complete, set the created session as active
-      // and redirect the user
-      if (signInAttempt.status === 'complete') {
-        await setActive({ session: signInAttempt.createdSessionId })
-        router.replace('/');
-      } else {
-        // If the status isn't complete, check why. User might need to
-        // complete further steps.
-        console.error(JSON.stringify(signInAttempt, null, 2))
+      // Start the sign-in process using the email and password provided
+      try {
+        const signInAttempt = await signIn.create({
+          identifier: email,
+          password: senha,
+        })
+
+        // If sign-in process is complete, set the created session as active
+        // and redirect the user
+        if (signInAttempt.status === 'complete') {
+          await setActive({ session: signInAttempt.createdSessionId })
+          router.replace('/');
+        } else {
+          // If the status isn't complete, check why. User might need to
+          // complete further steps.
+          console.error(JSON.stringify(signInAttempt, null, 2))
+        }
+      } catch (err: any) {
+        // See https://clerk.com/docs/custom-flows/error-handling
+        // for more info on error handling
+        setMensagemErro(err.errors?.[0]?.longMessage || 'Ocorreu um erro. Tente novamente.')
+      } finally {
+        setLoading(false)
       }
-    } catch (err: any) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
-      setMensagemErro(err.errors?.[0]?.longMessage || 'Ocorreu um erro. Tente novamente.')
-    } finally {
-      setLoading(false)
     }
+
+
   }
 
   return (
     <SafeAreaView edges={['top']} className='flex-1 items-center justify-start p-4 bg-black'>
-      <Pressable className='w-full h-full items-center justify-start gap-4' onPress={() => { Keyboard.dismiss() }}>
+      <Pressable className='w-full h-fit items-center justify-start gap-4' onPress={() => { Keyboard.dismiss() }}>
 
-        <Heading className="m-0 text-4xl font-bold text-white">
-          Entrar
-        </Heading>
+        <View className='flex flex-col py-6 gap-4 items-center'>
+          <Text className="m-0  text-4xl font-bold text-white">
+            Bem-vindo de volta
+          </Text>
+          <Text className="m-0 text-lg text-neutral-100">
+            Entre em sua conta para continuar
+          </Text>
+        </View>
 
         <SignInGoogleButton />
 
-        <View className='text-neutral-100 p-0'>
-          <Text className='text-neutral-100 w-fit font-bold'>ou</Text>
+        <View className='w-full'>
+          <View className="relative my-4">
+            <View className="relative flex-row justify-center z-10">
+              <Text className=" bg-black text-center text-neutral-100 text-sm px-2">
+                Ou continue com
+              </Text>
+            </View>
+            <View className="absolute inset-0 flex-row items-center z-0">
+              <View className="w-full border-t border-neutral-500" />
+            </View>
+          </View>
         </View>
 
         <View className='w-full flex flex-col gap-2 pb-6'>
           <View className='flex flex-col w-full gap-1'>
-            <Text className='text-white pb-1 font-bold ps-6'>E-mail</Text>
+            <Text className='text-white pb-1 font-bold ps-4'>E-mail</Text>
             <Input size='xl' isInvalid={!emailValido}>
               <InputField
                 type='text'
                 value={email}
-                onBlur={() => { checkEmail(email) }}
-                onChangeText={(email) => setEmail(email)}
+                onChangeText={(email) => {
+                  setEmail(email)
+                  setEmailValido(true)
+                }}
                 autoComplete='email'
                 autoCapitalize='none'
                 placeholder='seuemail@email.com' />
             </Input>
 
-            <Text className={`text-red-300 ps-6 pt-1 ${emailValido ? 'invisible' : ''}`}>E-mail inválido</Text>
+            <View className="ps-4 pt-1 pb-2">
+              {!emailValido && (
+                <Animated.Text
 
+                  entering={FadeIn.duration(200).springify().withInitialValues({
+                    transform: [{ translateY: 20 }],
+                  })}
+                  exiting={FadeOut.duration(200).springify().withInitialValues({
+                    transform: [{ translateY: -20 }],
+                  })}
+                  className="text-red-300"
+                >
+                  E-mail inválido
+                </Animated.Text>
+              )}
+            </View>
           </View>
 
           <View className='flex flex-col w-full gap-1'>
-            <Text className='text-white pb-1 font-bold ps-6'>Senha</Text>
+            <View className='flex flex-row w-full justify-between'>
+              <Text className='text-white pb-1 font-bold ps-4'>Senha</Text>
+              <View className='flex-row'>
+                <Link href="/(auth)/trocar-senha" className='text-primary-light pe-4'>
+                  Esqueci minha senha
+                </Link>
+              </View>
+            </View>
 
             <Input size='xl' isInvalid={!senhaValida}>
               <InputField
                 type={mostrarSenha ? 'text' : 'password'}
                 value={senha}
-                onChangeText={(senha) => checkSenha(senha)}
+                onChangeText={(senha) => {
+                  setSenha(senha)
+                  setSenhaValida(true)
+                }}
                 onSubmitEditing={onEntrarPress}
                 autoCapitalize='none'
                 autoComplete='password'
@@ -129,15 +178,37 @@ export default function Page() {
               </InputSlot>
             </Input>
 
-            <Text className={`text-red-300 ps-6 pt-1 ${senhaValida ? 'invisible' : ''}`}>Senha inválida</Text>
+            <View className="ps-4 pt-1 pb-2">
+              {!senhaValida && (
+                <Animated.Text
+                  entering={FadeIn.duration(200).springify().withInitialValues({
+                    transform: [{ translateY: 20 }],
+                  })}
+                  exiting={FadeOut.duration(200).springify().withInitialValues({
+                    transform: [{ translateY: -20 }],
+                  })}
+                  className="text-red-300"
+                >
+                  Senha inválida
+                </Animated.Text>
+              )}
+            </View>
 
             {mensagemErro &&
-              <Alert action="error" className="gap-3 w-full p-4 rounded-3xl">
+              <AnimatedAlert
+                entering={FadeIn.duration(200).springify().withInitialValues({
+                  transform: [{ translateY: 20 }],
+                })}
+                exiting={FadeOut.duration(200).springify().withInitialValues({
+                  transform: [{ translateY: -20 }],
+                })}
+                action="error"
+                className="gap-3 w-full p-4 rounded-3xl">
                 <AlertIcon as={InfoIcon} size="xl" className="fill-none text-red-500" />
                 <AlertText size="lg" className='text-white pe-4 ps-4 flex-1 flex-wrap'>
                   {mensagemErro}
                 </AlertText>
-              </Alert>
+              </AnimatedAlert>
             }
 
           </View>
@@ -151,12 +222,6 @@ export default function Page() {
 
 
         <View className='flex flex-col items-center justify-center gap-4 '>
-          <View className='flex-row '>
-            <Link href="/(auth)/trocar-senha" className='text-primary-light underline'>
-              Esqueci minha senha
-            </Link>
-          </View>
-
           <View className='flex-row'>
             <Text className='text-white'>Não possui uma conta?</Text>
 

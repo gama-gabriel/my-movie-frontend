@@ -22,7 +22,7 @@ export default function Layout() {
           <View className="flex-row items-center justify-between p-6 h-full">
             <Text className="text-white text-lg font-bold">LOGO</Text>
             <Pressable
-              onPress={() => router.push('/perfil')}
+              onPress={() => router.push('/(perfil)')}
               className="p-3 rounded-full bg-neutral-900"
             >
               <Icon as={UserRound} />

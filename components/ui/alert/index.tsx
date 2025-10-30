@@ -18,10 +18,10 @@ const alertStyle = tva({
 
   variants: {
     action: {
-      error: 'bg-background-error',
+      error: 'border border-danger/75',
       warning: 'bg-background-warning',
       success: 'bg-background-success',
-      info: 'bg-background-info',
+      info: 'border border-blue-500/75 bg-blue-500/20',
       muted: 'bg-background-muted',
     },
 
