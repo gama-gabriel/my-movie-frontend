@@ -22,7 +22,7 @@ export default function Layout() {
           <View className="flex-row items-center justify-between p-6 h-full">
             <Text className="text-white text-lg font-bold">LOGO</Text>
             <Pressable
-              onPress={() => router.push('/(perfil)')}
+              onPress={() => router.push('/(pesquisa)')}
               className="p-3 rounded-full bg-neutral-900"
             >
               <Icon as={UserRound} />
@@ -34,11 +34,11 @@ export default function Layout() {
           screenOptions={{
             tabBarActiveTintColor: primaryLight,
             tabBarStyle: {
-              backgroundColor: '#000',
+              backgroundColor: 'black',
               elevation: 0,
               shadowOpacity: 0
             },
-            headerShown: false
+            headerShown: false,
           }}
         >
           <Tabs.Screen
@@ -52,10 +52,23 @@ export default function Layout() {
               ),
             }}
           />
+
           <Tabs.Screen
             name="lancamentos"
             options={{
               title: 'Lançamentos',
+              tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000' },
+              tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
+              tabBarIcon: ({ color }) => (
+                <Icon as={Sparkles} style={{ width: 20, height: 20, color: color }} />
+              ),
+            }}
+          />
+
+          <Tabs.Screen
+            name="perfil"
+            options={{
+              title: 'Perfil',
               tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000' },
               tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
               tabBarIcon: ({ color }) => (

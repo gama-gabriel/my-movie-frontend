@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 
-export default function PerfilRoutesLayout() {
+export default function PesquisaRoutesLayout() {
   return (
     <Stack
       screenOptions={{
