@@ -354,6 +354,7 @@ export function ListaMedias() {
         drawDistance={1200}
         renderItem={({ item }) => <ImageItem item={item} />}
         onEndReached={handleEndReached}
+        onEndReachedThreshold={2}
         ListFooterComponent={
           isFetchingNextPage ? (
             <ActivityIndicator
