@@ -9,7 +9,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Redirect, useRouter } from "expo-router";
 import React from "react";
 import { View, Text } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Perfil() {
 
@@ -141,43 +140,47 @@ export default function Perfil() {
   }
 
   return (
-    <SafeAreaView edges={['top']} className='flex-1 items-center justify-start p-4 bg-black'>
+    <>
       <SignedIn>
-        <Heading className="m-0 text-4xl font-bold text-white">
-          Perfil
-        </Heading>
-        <View className='flex-1 items-center justify-start bg-black w-full h-full gap-4'>
+        <View className="flex-1 w-full pt-20 bg-black flex items-center p-4">
 
-          <View className="w-full flex flex-col justify-start pb-4">
-            <Heading className="m-0 text-2xl font-bold text-white">
-              Meus dados
-            </Heading>
+          <Heading className="m-0 text-4xl font-bold text-white">
+            Perfil
+          </Heading>
+          <View className='flex-1 items-center justify-start bg-black w-full h-full gap-4'>
 
-            <View className="flex flex-col gap-4">
-              <View className="flex flex-col gap-1">
-                <Text className='text-white font-bold'>E-mail</Text>
-                <Text className='text-white'>{user?.emailAddresses[0].emailAddress}</Text>
-              </View>
+            <View className="w-full flex flex-col justify-start pb-4">
+              <Heading className="m-0 text-2xl font-bold text-white">
+                Meus dados
+              </Heading>
 
-              {user?.fullName &&
+              <View className="flex flex-col gap-4">
                 <View className="flex flex-col gap-1">
-                  <Text className='text-white font-bold'>Nome</Text>
-                  <Text className='text-white'>{user.fullName}</Text>
+                  <Text className='text-white font-bold'>E-mail</Text>
+                  <Text className='text-white'>{user?.emailAddresses[0].emailAddress}</Text>
                 </View>
-              }
 
+                {user?.fullName &&
+                  <View className="flex flex-col gap-1">
+                    <Text className='text-white font-bold'>Nome</Text>
+                    <Text className='text-white'>{user.fullName}</Text>
+                  </View>
+                }
+
+              </View>
             </View>
+
+            <SignOutButton />
+
+            <Button variant='solid' size='xl' className='w-full bg-danger data-[active=true]:bg-danger/80' onPress={() => setMostrarDialogConfirmacao(true)}>
+              <ButtonSpinner className={status === "pending" ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white' ></ButtonSpinner>
+              <ButtonText className='text-white pl-4'>Excluir conta</ButtonText>
+            </Button>
+
+            <DialogConfirmarExcluir />
+            <DialogExcluir />
+
           </View>
-
-          <SignOutButton />
-
-          <Button variant='solid' size='xl' className='w-full bg-danger data-[active=true]:bg-danger/80' onPress={() => setMostrarDialogConfirmacao(true)}>
-            <ButtonSpinner className={status === "pending" ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white' ></ButtonSpinner>
-            <ButtonText className='text-white pl-4'>Excluir conta</ButtonText>
-          </Button>
-
-          <DialogConfirmarExcluir />
-          <DialogExcluir />
 
         </View>
       </SignedIn>
@@ -185,6 +188,6 @@ export default function Perfil() {
       <SignedOut>
         <Redirect href='/(auth)/home'></Redirect>
       </SignedOut>
-    </SafeAreaView>
+    </>
   )
 }

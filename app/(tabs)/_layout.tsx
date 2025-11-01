@@ -45,7 +45,15 @@ export default function Layout() {
             name="home"
             options={{
               title: 'Para você',
-              tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000' },
+              animation: 'fade',
+              transitionSpec: {
+                animation: 'timing',
+                config: {
+                  duration: 200,
+                },
+              },
+              sceneStyle: { backgroundColor: 'black' },
+              tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
               tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
               tabBarIcon: ({ color }) => (
                 <Icon as={Home} style={{ width: 20, height: 20, color: color }} />
@@ -57,7 +65,15 @@ export default function Layout() {
             name="lancamentos"
             options={{
               title: 'Lançamentos',
-              tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000' },
+              animation: 'fade',
+              transitionSpec: {
+                animation: 'timing',
+                config: {
+                  duration: 200,
+                },
+              },
+              sceneStyle: { backgroundColor: 'black' },
+              tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
               tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
               tabBarIcon: ({ color }) => (
                 <Icon as={Sparkles} style={{ width: 20, height: 20, color: color }} />
@@ -69,7 +85,15 @@ export default function Layout() {
             name="perfil"
             options={{
               title: 'Perfil',
-              tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000' },
+              animation: 'fade',
+              transitionSpec: {
+                animation: 'timing',
+                config: {
+                  duration: 200,
+                },
+              },
+              sceneStyle: { backgroundColor: 'black' },
+              tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
               tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
               tabBarIcon: ({ color }) => (
                 <Icon as={Sparkles} style={{ width: 20, height: 20, color: color }} />
