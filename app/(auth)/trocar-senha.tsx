@@ -4,12 +4,12 @@ import { EyeIcon, EyeOffIcon, InfoIcon } from "@/components/ui/icon";
 import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { primary, primaryDark } from "@/constants/constants";
 import { useSignIn } from "@clerk/clerk-expo";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Keyboard, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AnimatedButton } from "../components/AnimatedButton";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useToastVariant } from "@/hooks/useToastVariant";
 
 const AnimatedAlert = Animated.createAnimatedComponent(Alert);
@@ -37,6 +37,14 @@ export default function ForgotPasswordScreen() {
   const [loading, setLoading] = useState(false)
 
   const toast = useToastVariant()
+
+  const { comingFrom, action, userEmail } = useLocalSearchParams<{comingFrom: string, action: string, userEmail?: string}>();
+
+  useEffect(() => {
+    if (userEmail) {
+      setEmail(userEmail)
+    }
+  }, [userEmail]);
 
   const checkSenha = (senha: string): boolean => {
     setSenha(senha)
@@ -112,7 +120,11 @@ export default function ForgotPasswordScreen() {
       if (result.status === "complete") {
         await setActive!({ session: result.createdSessionId });
         toast.show("Senha alterada com sucesso!", "success")
-        router.replace('/')
+        if (comingFrom === 'auth') {
+          router.replace('/')
+          return
+        }
+        router.replace('/(tabs)/perfil')
       }
     } catch (err: any) {
       setMensagemErro(err.errors?.[0]?.longMessage || "Ocorreu um erro. Tente novamente.");
@@ -125,17 +137,25 @@ export default function ForgotPasswordScreen() {
     <SafeAreaView edges={['top']} className='flex-1 items-center justify-start p-4 bg-black'>
       <Pressable className='w-full h-full items-center justify-start gap-4' onPress={() => { Keyboard.dismiss() }}>
         <View className='flex flex-col py-6 items-center'>
-          <Text className="m-0 text-4xl font-bold text-white">
-            Alterar senha
-          </Text>
+          {action === 'alterar' &&
+            <Text className="m-0 text-4xl font-bold text-white">
+              Alterar senha
+            </Text>
+          }
+
+          {action === 'cadastrar' &&
+            <Text className="m-0 text-4xl font-bold text-white">
+              Cadastrar senha
+            </Text>
+          }
         </View>
 
         {step === "request" && (
           <View className="flex flex-col w-full gap-6">
             <View className='flex flex-col w-full gap-1'>
 
-              <Text className='text-white pb-1 font-bold ps-4'>E-mail</Text>
-              <Input size='xl' >
+              <Text className='text-white pb-1 font-bold ps-4 data-[readonly=true]:bg-red-900'>E-mail</Text>
+              <Input size='xl' isReadOnly={!!userEmail}>
                 <InputField
                   type='text'
                   value={email}
@@ -206,7 +226,6 @@ export default function ForgotPasswordScreen() {
             </Alert>
 
             <View className='flex flex-col w-full gap-1'>
-
               <Text className='text-white pb-1 font-bold ps-4'>Código</Text>
               <Input size='xl' isInvalid={!codigoValido}>
                 <InputField

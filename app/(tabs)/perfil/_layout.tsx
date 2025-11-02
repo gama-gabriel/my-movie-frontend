@@ -1,13 +1,6 @@
-import { useAuth } from '@clerk/clerk-expo'
-import { Redirect, Stack } from 'expo-router'
+import { Stack } from 'expo-router';
 
-export default function AuthRoutesLayout() {
-  const { isSignedIn } = useAuth()
-
-  // if (isSignedIn) {
-  //   return <Redirect href={'/(tabs)/home'} />
-  // }
-
+export default function PerfilStackLayout() {
   return (
     <Stack
       screenOptions={{
@@ -17,8 +10,9 @@ export default function AuthRoutesLayout() {
         presentation: 'transparentModal',
         animationDuration: 100,
         animation: 'fade_from_bottom',
-        animationTypeForReplace: 'pop',
+        animationTypeForReplace: 'push',
       }}
     />
+
   );
 }

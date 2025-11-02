@@ -2,7 +2,7 @@ import { Tabs, useRouter } from 'expo-router';
 import { View, Text, Pressable } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/components/ui/icon';
-import { Home, Sparkles, UserRound } from 'lucide-react-native';
+import { Home, Sparkles, UserRound, SearchIcon } from 'lucide-react-native';
 import { RatingDrawer } from '@/components/RatingDrawer';
 import { RatingDrawerProvider } from '@/contexts/RatingDrawerContext';
 import { neutral900, primaryLight } from '@/constants/constants';
@@ -25,7 +25,7 @@ export default function Layout() {
               onPress={() => router.push('/(pesquisa)')}
               className="p-3 rounded-full bg-neutral-900"
             >
-              <Icon as={UserRound} />
+              <Icon as={SearchIcon} />
             </Pressable>
           </View>
         </View>
@@ -45,7 +45,7 @@ export default function Layout() {
             name="home"
             options={{
               title: 'Para você',
-              animation: 'fade',
+              animation: 'shift',
               transitionSpec: {
                 animation: 'timing',
                 config: {
@@ -65,7 +65,7 @@ export default function Layout() {
             name="lancamentos"
             options={{
               title: 'Lançamentos',
-              animation: 'fade',
+              animation: 'shift',
               transitionSpec: {
                 animation: 'timing',
                 config: {
@@ -85,7 +85,7 @@ export default function Layout() {
             name="perfil"
             options={{
               title: 'Perfil',
-              animation: 'fade',
+              animation: 'shift',
               transitionSpec: {
                 animation: 'timing',
                 config: {
@@ -96,7 +96,7 @@ export default function Layout() {
               tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
               tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
               tabBarIcon: ({ color }) => (
-                <Icon as={Sparkles} style={{ width: 20, height: 20, color: color }} />
+                <Icon as={UserRound} style={{ width: 20, height: 20, color: color }} />
               ),
             }}
           />

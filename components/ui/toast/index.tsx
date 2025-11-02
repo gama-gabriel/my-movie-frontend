@@ -26,7 +26,7 @@ const SCOPE = 'TOAST';
 cssInterop(MotionView, { className: 'style' });
 
 const toastStyle = tva({
-  base: 'p-4 mx-auto gap-1 web:pointer-events-auto shadow-hard-5 border-neutral-700 rounded-3xl',
+  base: 'p-4 mx-auto gap-1 web:pointer-events-auto rounded-3xl',
   variants: {
     action: {
       error: 'bg-red-500',

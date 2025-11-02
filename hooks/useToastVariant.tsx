@@ -5,16 +5,16 @@ import { CheckIcon, CircleAlertIcon, InfoIcon } from "lucide-react-native";
 import { Toast, useToast } from "@/components/ui/toast";
 import { danger, success, warning } from "@/constants/constants";
 
-const toastColors = {
-  success: "border-success/75",
-  error: "border-danger/75",
-  warning: "border-warning/75",
-};
-
 const toastIcons = {
   success: CheckIcon,
   error: CircleAlertIcon,
   warning: InfoIcon,
+};
+
+const borderColors = {
+  success: success,
+  error: danger,
+  warning: warning,
 };
 
 export const useToastVariant = () => {
@@ -26,7 +26,6 @@ export const useToastVariant = () => {
       if (toast.isActive(id)) return;
 
       const Icon = toastIcons[type];
-      const borderClass = toastColors[type];
 
       toast.show({
         id,
@@ -43,18 +42,22 @@ export const useToastVariant = () => {
                 nativeID={uniqueToastId}
                 action={type}
                 variant="outline"
-                className={`flex flex-row gap-4 px-6 py-4 items-center w-[95%] mx-auto ${borderClass}`}
+                style={{
+                  borderWidth: 1,
+                  borderColor: borderColors[type],
+                }}
+                className='flex flex-row gap-4 px-6 py-4 items-center w-[95%] mx-auto'
               >
                 <Icon
                   color={
                     type === "success"
                       ? success
                       : type === "error"
-                      ? danger
-                      : warning
+                        ? danger
+                        : warning
                   }
                 />
-                <Text className="text-white w-[90%] bg-blue-500">{message}</Text>
+                <Text className="text-white w-[90%]">{message}</Text>
               </Toast>
             </SafeAreaView>
           );

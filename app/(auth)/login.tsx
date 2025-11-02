@@ -154,7 +154,9 @@ export default function Page() {
             <View className='flex flex-row w-full justify-between'>
               <Text className='text-white pb-1 font-bold ps-4'>Senha</Text>
               <View className='flex-row'>
-                <Link href="/(auth)/trocar-senha" className='text-primary-light pe-4'>
+                <Link
+                  href={{ pathname: "/(auth)/trocar-senha", params: { comingFrom: 'auth' } }}
+                  className='text-primary-light pe-4'>
                   Esqueci minha senha
                 </Link>
               </View>

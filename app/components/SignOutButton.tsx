@@ -1,9 +1,12 @@
 import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from '@/components/ui/alert-dialog'
-import { Button, ButtonText } from '@/components/ui/button'
+import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
 import { useClerk } from '@clerk/clerk-expo'
 import { useRouter } from 'expo-router'
 import React from 'react'
 import { Text } from 'react-native'
+import { AnimatedButton } from './AnimatedButton'
+import { danger, neutral100, neutral500, neutral700, neutral900 } from '@/constants/constants'
+import { LogOutIcon } from 'lucide-react-native'
 
 const SignOutButton = () => {
   // Use `useClerk()` to access the `signOut()` function
@@ -17,8 +20,8 @@ const SignOutButton = () => {
   const handleSignOut = async () => {
     try {
       await signOut()
+      router.replace('/(auth)/home')
       // Redirect to your desired page
-      // router.replace('/(auth)/home')
     } catch (err) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
@@ -66,9 +69,11 @@ const SignOutButton = () => {
 
   return (
     <>
-      <Button variant='outlined' size='xl' className='w-full bg-transparent rounded-full border border-red-500 transition data-[active=true]:bg-neutral-700 disabled:bg-primary-black' onPress={() => setMostrarDialogConfirmacao(true)}>
-        <ButtonText className='text-white'>Sair</ButtonText>
-      </Button>
+      <AnimatedButton inactiveColor='transparent' activeColor={neutral900} variant='outlined' size='xl' className='w-full border border-danger'
+        onPress={() => setMostrarDialogConfirmacao(true)}>
+        <ButtonIcon as={LogOutIcon} color={neutral100}></ButtonIcon>
+        <ButtonText className='text-white pl-4'>Sair</ButtonText>
+      </AnimatedButton>
       <DialogConfirmarSair />
     </>
 
