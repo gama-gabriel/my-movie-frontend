@@ -6,6 +6,7 @@ import { Home, Sparkles, UserRound, SearchIcon } from 'lucide-react-native';
 import { RatingDrawer } from '@/components/RatingDrawer';
 import { RatingDrawerProvider } from '@/contexts/RatingDrawerContext';
 import { neutral900, primaryLight } from '@/constants/constants';
+import Logo from '@/assets/logo.svg'
 
 export default function Layout() {
   const insets = useSafeAreaInsets();
@@ -19,8 +20,10 @@ export default function Layout() {
           className="absolute w-full left-0 z-10 h-20 bg-black/90 border-b border-neutral-900"
           style={{ top: insets.top }}
         >
-          <View className="flex-row items-center justify-between p-6 h-full">
-            <Text className="text-white text-lg font-bold">LOGO</Text>
+          <View className="flex-row items-center justify-between p-6 h-20">
+
+            <Logo height={'100%'} preserveAspectRatio="xMinYMin meet" style={{flex: 1}}></Logo>
+            {/* <Text className="text-white text-lg font-bold">LOGO</Text> */}
             <Pressable
               onPress={() => router.navigate('/(tabs)/perfil')}
               className="p-3 rounded-full bg-neutral-900"

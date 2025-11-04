@@ -1,11 +1,12 @@
 import { ButtonText } from '@/components/ui/button'
-import { Heading } from '@/components/ui/heading'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import SignInGoogleButton from '../components/SignInGoogleButton'
 import { AnimatedButton } from '../components/AnimatedButton'
 import { primary, primaryDark, secondary } from '@/constants/constants'
 import Animated, { FadeIn } from 'react-native-reanimated'
+import Logo from '@/assets/logo.svg'
+import { View } from 'react-native'
 
 export default function Page() {
   const router = useRouter();
@@ -33,8 +34,10 @@ export default function Page() {
         entering={FadeIn.duration(100).springify().withInitialValues({
           transform: [{ translateY: 20 }],
         })}
-        className='flex-1 items-center justify-center gap-4 py-4 bg-black'>
-        <Heading size='4xl'>MyMovie</Heading>
+        className='flex-1 items-center justify-center gap-4 py-4 w-full '>
+          <View className='flex w-full h-24 items-center justify-center'>
+            <Logo width={'80%'} preserveAspectRatio="xMinYMin meet" style={{flex: 1}}></Logo>
+          </View>
       </Animated.View>
 
       <Animated.View
