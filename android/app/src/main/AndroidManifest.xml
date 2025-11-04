@@ -25,7 +25,6 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="mymovie"/>
-        <data android:scheme="exp+my-movie"/>
       </intent-filter>
     </activity>
   </application>

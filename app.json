@@ -9,7 +9,8 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.mymovie"
     },
     "android": {
       "adaptiveIcon": {
@@ -29,7 +30,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/logo.svg",
+          "image": "./assets/images/splash-icon.png",
           "imageWidth": 300,
           "resizeMode": "contain",
           "backgroundColor": "#000000"

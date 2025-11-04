@@ -430,10 +430,14 @@ const ImageItem = ({ item }: { item: Media }) => {
     setTimeout(() => onRate(newRating, item), 0);
   }, [item, onRate, setRating]);
 
+  useEffect(() => {
+    console.log("id", item.id)
+  }, [item])
+
+
   return (
     <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8' >
       <Pressable onPress={() => handleIrParaDetalhes(item, currentRating ?? 0)}
-        key={item.id}
       >
         <Image
           source={{ uri }}
