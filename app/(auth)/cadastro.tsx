@@ -1,7 +1,7 @@
 import { ButtonSpinner, ButtonText } from '@/components/ui/button'
 import { EyeIcon, EyeOffIcon, InfoIcon } from '@/components/ui/icon'
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input'
-import { useSignUp } from '@clerk/clerk-expo'
+import { useSignUp, useUser } from '@clerk/clerk-expo'
 import { Link, useRouter } from 'expo-router'
 import * as React from 'react'
 import { Keyboard, Pressable, Text, View } from 'react-native'
@@ -17,6 +17,9 @@ const AnimatedAlert = Animated.createAnimatedComponent(Alert);
 
 export default function Cadastro() {
   const { isLoaded, signUp, setActive } = useSignUp()
+
+  const { user } = useUser();
+
   const router = useRouter();
 
   const [nome, setNome] = React.useState('')
@@ -97,11 +100,16 @@ export default function Cadastro() {
     // Start sign-up process using email and password provided
     try {
       await signUp.create({
-        // username: nome,
         emailAddress: email,
         password: senha,
       })
 
+      if (user) {
+        await user.update({
+          firstName: nome.split(' ')[0], // First part of the name
+          lastName: nome.split(' ').slice(1).join(' '), // Remaining part of the name
+        });
+      }
       // Send user an email with verification code
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
 
@@ -137,7 +145,11 @@ export default function Cadastro() {
       // and redirect the user
       if (signUpAttempt.status === 'complete') {
         await setActive({ session: signUpAttempt.createdSessionId })
-        router.replace('/(onboarding)')
+        await
+          router.replace({
+            pathname: '/(onboarding)',
+            params: { username: nome }
+          })
       } else {
         // If the status is not complete, check why. User may need to
         // complete further steps.

@@ -255,7 +255,7 @@ const AlertDialogBackdrop = React.forwardRef<
         opacity: 0,
       }}
       animate={{
-        opacity: 0.5,
+        opacity: 0.8,
       }}
       exit={{
         opacity: 0,

@@ -1,11 +1,11 @@
 import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from '@/components/ui/alert-dialog'
-import { Button, ButtonIcon, ButtonText } from '@/components/ui/button'
+import { ButtonIcon, ButtonText } from '@/components/ui/button'
 import { useClerk } from '@clerk/clerk-expo'
 import { useRouter } from 'expo-router'
 import React from 'react'
 import { Text } from 'react-native'
 import { AnimatedButton } from './AnimatedButton'
-import { danger, neutral100, neutral500, neutral700, neutral900 } from '@/constants/constants'
+import {  neutral100, neutral900 } from '@/constants/constants'
 import { LogOutIcon } from 'lucide-react-native'
 
 const SignOutButton = () => {
@@ -34,7 +34,7 @@ const SignOutButton = () => {
       <AlertDialog isOpen={mostrarDialogConfirmacao} onClose={handleClose} size="md">
         <AlertDialogBackdrop />
 
-        <AlertDialogContent>
+        <AlertDialogContent className='rounded-3xl bg-black'>
           <AlertDialogHeader>
             <Text className="text-white font-bold text-lg py-2">
               Sair
@@ -48,18 +48,26 @@ const SignOutButton = () => {
           </AlertDialogBody>
 
           <AlertDialogFooter className="py-2">
-            <Button
+            <AnimatedButton
+              inactiveColor='transparent'
+              activeColor={neutral900}
+              className="border border-neutral-500"
               variant="outline"
               action="secondary"
               onPress={handleClose}
-              size="md"
+              size="lg"
             >
               <ButtonText>Cancelar</ButtonText>
-            </Button>
+            </AnimatedButton>
 
-            <Button size="md" onPress={handleSignOut} className="bg-red-600 data-[active=true]:bg-red-800">
+            <AnimatedButton
+              inactiveColor='transparent'
+              activeColor={neutral900}
+              className='border border-danger'
+              size="lg"
+              onPress={handleSignOut}>
               <ButtonText>Sair</ButtonText>
-            </Button>
+            </AnimatedButton>
           </AlertDialogFooter>
 
         </AlertDialogContent>
@@ -69,7 +77,12 @@ const SignOutButton = () => {
 
   return (
     <>
-      <AnimatedButton inactiveColor='transparent' activeColor={neutral900} variant='outlined' size='xl' className='w-full border border-danger'
+      <AnimatedButton
+        inactiveColor='transparent'
+        activeColor={neutral900}
+        variant='outlined'
+        size='xl'
+        className='w-full border border-danger'
         onPress={() => setMostrarDialogConfirmacao(true)}>
         <ButtonIcon as={LogOutIcon} color={neutral100}></ButtonIcon>
         <ButtonText className='text-white pl-4'>Sair</ButtonText>

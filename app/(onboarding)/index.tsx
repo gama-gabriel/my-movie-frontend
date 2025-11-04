@@ -1,7 +1,7 @@
 import { useUser } from "@clerk/clerk-expo";
 import { UserResource } from "@clerk/types";
 import { useQuery } from "@tanstack/react-query";
-import { Redirect } from "expo-router";
+import { Redirect, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -32,13 +32,20 @@ const postCheckUser = async (id: string) => {
   return data;
 }
 
-const createUser = async (user: UserResource) => {
+const createUser = async (user: UserResource, username: string | undefined) => {
+
+  const createdName = username ? username : user.fullName
+
   const response = await fetch('https://mymovie-nhhq.onrender.com/user/new_user', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ clerk_id: user.id, email: user.emailAddresses[0].emailAddress, name: user.firstName + " " + user.lastName }),
+    body: JSON.stringify({ 
+      clerk_id: user.id, 
+      email: user.emailAddresses[0].emailAddress, 
+      name: createdName
+    }),
   });
 
   console.log(response)
@@ -52,17 +59,19 @@ export default function Onboarding() {
   const { user } = useUser()
   const [idToCheck, setIdToCheck] = useState<string | null>(null)
 
+  const { username } = useLocalSearchParams<{ username?: string }>();
+
   const { data: userExists, isLoading, error } = useQuery({
     queryKey: ['check-user-existence', idToCheck],
-    queryFn: () => postCheckUser(idToCheck!), 
-    enabled: !!idToCheck, 
+    queryFn: () => postCheckUser(idToCheck!),
+    enabled: !!idToCheck,
     retry: false,
   })
 
   const { data: createdUser, error: errorCreatingUser, isLoading: isCreatingUser } = useQuery({
     queryKey: ['createUser', userExists],
-    queryFn: () => createUser(user!), 
-    enabled: !userExists?.exists, 
+    queryFn: () => createUser(user!, username),
+    enabled: !userExists?.exists,
     retry: false,
   })
 
@@ -101,7 +110,7 @@ export default function Onboarding() {
 
   if (!userExists?.exists) {
     console.log("User does not exist, creating user...");
-    return <Loading/>
+    return <Loading />
   }
 
   return null;

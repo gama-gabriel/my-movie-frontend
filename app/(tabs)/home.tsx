@@ -3,7 +3,7 @@ import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
 import { Text, ActivityIndicator, RefreshControl, View, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { QueryFunctionContext, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import Animated from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
 import { FlashList, FlashListProps } from '@shopify/flash-list';
@@ -13,7 +13,7 @@ import { neutral700 } from '../../constants/constants'
 import { useRatingDrawer } from '@/contexts/RatingDrawerContext';
 import { Skeleton } from 'moti/skeleton'
 import EventBus from '@/utils/EventBus'
-import { useRouter } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 import { Media, ResponseMedia } from '@/types/media.t'
 import { useMediaRatingsStore, useMediaStore, useRatingStore } from '@/hooks/useMediaStore'
 import { StarRating } from '@/components/RatingDrawer'
@@ -350,7 +350,7 @@ export function ListaMedias() {
   return (
     <View
       className='flex-1 w-full bg-black'
-      >
+    >
       <FlashList
         contentContainerClassName="pt-20"
         ref={listRef}
@@ -433,7 +433,7 @@ const ImageItem = ({ item }: { item: Media }) => {
   return (
     <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8' >
       <Pressable onPress={() => handleIrParaDetalhes(item, currentRating ?? 0)}
-      key={item.id}
+        key={item.id}
       >
         <Image
           source={{ uri }}
@@ -472,10 +472,30 @@ const ImageItem = ({ item }: { item: Media }) => {
 
 export default function Page() {
 
+  const opacity = useSharedValue(0);
+  const translateX = useSharedValue(-20);
+  useFocusEffect(
+    useCallback(() => {
+      opacity.value = withTiming(1, { duration: 300 })
+      translateX.value = withTiming(0, { duration: 600 })
+      return () => {
+        opacity.value = 0
+        translateX.value = -20
+      }
+    }, [opacity, translateX])
+  );
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateX: translateX.value }],
+  }));
+
   return (
     <>
       <SignedIn>
-        <ListaMedias />
+        <Animated.View className='flex-1' style={animatedStyle} >
+          <ListaMedias />
+        </Animated.View>
       </SignedIn>
 
       <SignedOut>

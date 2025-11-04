@@ -38,7 +38,7 @@ export default function ForgotPasswordScreen() {
 
   const toast = useToastVariant()
 
-  const { comingFrom, action, userEmail } = useLocalSearchParams<{comingFrom: string, action: string, userEmail?: string}>();
+  const { comingFrom, action, userEmail } = useLocalSearchParams<{ comingFrom: string, action: string, userEmail?: string }>();
 
   useEffect(() => {
     if (userEmail) {
@@ -136,18 +136,11 @@ export default function ForgotPasswordScreen() {
   return (
     <SafeAreaView edges={['top']} className='flex-1 items-center justify-start p-4 bg-black'>
       <Pressable className='w-full h-full items-center justify-start gap-4' onPress={() => { Keyboard.dismiss() }}>
-        <View className='flex flex-col py-6 items-center'>
-          {action === 'alterar' &&
-            <Text className="m-0 text-4xl font-bold text-white">
-              Alterar senha
-            </Text>
-          }
 
-          {action === 'cadastrar' &&
-            <Text className="m-0 text-4xl font-bold text-white">
-              Cadastrar senha
-            </Text>
-          }
+        <View className='flex flex-col py-6 items-center'>
+          <Text className="m-0 text-4xl font-bold text-white">
+            Alterar senha
+          </Text>
         </View>
 
         {step === "request" && (

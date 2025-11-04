@@ -1,23 +1,25 @@
 import SignOutButton from "@/app/components/SignOutButton";
 import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader } from "@/components/ui/alert-dialog";
-import { Button, ButtonIcon, ButtonSpinner, ButtonText } from "@/components/ui/button";
+import { ButtonIcon, ButtonSpinner, ButtonText } from "@/components/ui/button";
 import { useToastVariant } from "@/hooks/useToastVariant";
 import { protectedFetch } from "@/utils/Auth.utils";
 import { SignedIn, SignedOut, useAuth, useUser } from "@clerk/clerk-expo";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Redirect, useRouter } from "expo-router";
-import React from "react";
+import { Redirect, useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { Image } from 'expo-image';
 import { AnimatedButton } from "../../components/AnimatedButton";
 import { danger, neutral100, neutral900 } from "@/constants/constants";
 import { KeyRoundIcon, ListIcon, PencilIcon, Trash2Icon } from "lucide-react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 export default function Perfil() {
 
   const queryClient = useQueryClient();
   const toast = useToastVariant()
   const { user } = useUser()
+  const [username, setUsername] = useState('')
   const { getToken, signOut } = useAuth()
 
   const router = useRouter();
@@ -35,7 +37,39 @@ export default function Perfil() {
     setMostrarDialogExclusao(true);
   }
 
+  useEffect(() => {
+    const metadata = user?.publicMetadata
+    if (metadata?.username) {
+      setUsername(metadata.username as string)
+    } else {
+      if (user) {
+        setUsername(user.fullName!)
+      }
+    }
+  }, [user])
+
+
+  const opacity = useSharedValue(0);
+  const translateX = useSharedValue(20);
+
+  useFocusEffect(
+    useCallback(() => {
+      opacity.value = withTiming(1, { duration: 600 })
+      translateX.value = withTiming(0, { duration: 600 })
+      return () => {
+        opacity.value = 0
+        translateX.value = 20
+      }
+    }, [opacity, translateX])
+  );
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateX: translateX.value }],
+  }));
+
   const excluirUsuarioFn = async (id: string) => {
+    console.log("excluindo ", id)
     const response = await protectedFetch('https://mymovie-nhhq.onrender.com/user/delete', getToken, {
       method: 'DELETE',
       body: JSON.stringify({ clerk_id: id }),
@@ -73,7 +107,7 @@ export default function Perfil() {
       <AlertDialog isOpen={mostrarDialogConfirmacao} onClose={handleClose} size="md">
         <AlertDialogBackdrop />
 
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-3xl bg-black">
           <AlertDialogHeader>
             <Text className="text-white font-bold text-lg py-2">
               Tem certeza que deseja excluir sua conta?
@@ -87,18 +121,21 @@ export default function Perfil() {
           </AlertDialogBody>
 
           <AlertDialogFooter className="py-2">
-            <Button
+            <AnimatedButton
+              inactiveColor="transparent"
+              activeColor={neutral900}
               variant="outline"
               action="secondary"
+              className="border border-neutral-500"
               onPress={handleClose}
               size="md"
             >
               <ButtonText>Cancelar</ButtonText>
-            </Button>
+            </AnimatedButton>
 
-            <Button size="md" onPress={openDialogExclusao} className="bg-red-600 data-[active=true]:bg-red-800">
+            <AnimatedButton inactiveColor={`${danger}50`} activeColor={`${danger}80`} variant='solid' size='lg' className='border border-danger/75' onPress={openDialogExclusao}>
               <ButtonText>Excluir</ButtonText>
-            </Button>
+            </AnimatedButton>
           </AlertDialogFooter>
 
         </AlertDialogContent>
@@ -111,7 +148,7 @@ export default function Perfil() {
       <AlertDialog isOpen={mostrarDialogExclusao} onClose={handleCloseExclusao} size="md">
         <AlertDialogBackdrop />
 
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-3xl bg-black">
           <AlertDialogHeader>
             <Text className="text-white font-bold text-lg py-2">
               Confirmar exclusão
@@ -125,18 +162,21 @@ export default function Perfil() {
           </AlertDialogBody>
 
           <AlertDialogFooter className="py-2">
-            <Button
+            <AnimatedButton
+              inactiveColor="transparent"
+              activeColor={neutral900}
+              className="border border-neutral-500"
               variant="outline"
               action="secondary"
               onPress={handleCloseExclusao}
               size="md"
             >
               <ButtonText>Cancelar</ButtonText>
-            </Button>
+            </AnimatedButton>
 
-            <Button size="md" onPress={excluirConta} className="bg-red-600 data-[active=true]:bg-red-800">
+            <AnimatedButton inactiveColor={`${danger}50`} activeColor={`${danger}80`} variant='solid' size='lg' className='border border-danger/75' onPress={excluirConta}>
               <ButtonText>Excluir minha conta</ButtonText>
-            </Button>
+            </AnimatedButton>
           </AlertDialogFooter>
 
         </AlertDialogContent>
@@ -147,7 +187,7 @@ export default function Perfil() {
   return (
     <>
       <SignedIn>
-        <View className="flex flex-1 pt-20 px-4">
+        <Animated.View className="flex flex-1 pt-20 px-4" style={animatedStyle}>
           <ScrollView showsVerticalScrollIndicator={false} className="flex flex-col">
             <View className="flex-1 flex flex-col pt-6 pb-12 gap-8 w-full items-center">
               <Text className="m-0 text-4xl font-bold text-white">
@@ -171,7 +211,7 @@ export default function Perfil() {
                   />
 
                   <View className="flex flex-col items-center">
-                    <Text className="text-white font-bold text-lg">{user?.fullName}</Text>
+                    <Text className="text-white font-bold text-lg">{username}</Text>
                     <Text className='text-neutral-100'>{user?.emailAddresses[0].emailAddress}</Text>
                   </View>
 
@@ -182,7 +222,7 @@ export default function Perfil() {
 
                   <View className="flex flex-col gap-1">
                     <Text className="text-white font-bold text-lg">Nome</Text>
-                    <Text className='text-neutral-100'>{user?.fullName}</Text>
+                    <Text className='text-neutral-100'>{username}</Text>
                   </View>
 
                   <View className="flex flex-col gap-1">
@@ -246,7 +286,7 @@ export default function Perfil() {
 
             </View>
           </ScrollView>
-        </View >
+        </Animated.View >
 
       </SignedIn >
 

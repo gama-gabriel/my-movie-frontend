@@ -4,9 +4,9 @@ import { Redirect, Stack } from 'expo-router'
 export default function AuthRoutesLayout() {
   const { isSignedIn } = useAuth()
 
-  // if (isSignedIn) {
-  //   return <Redirect href={'/(tabs)/home'} />
-  // }
+  if (isSignedIn) {
+    return <Redirect href={'/(tabs)/home'} />
+  }
 
   return (
     <Stack
