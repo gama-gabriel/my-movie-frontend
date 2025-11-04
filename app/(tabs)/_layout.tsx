@@ -22,10 +22,10 @@ export default function Layout() {
           <View className="flex-row items-center justify-between p-6 h-full">
             <Text className="text-white text-lg font-bold">LOGO</Text>
             <Pressable
-              onPress={() => router.push('/(pesquisa)')}
+              onPress={() => router.navigate('/(tabs)/perfil')}
               className="p-3 rounded-full bg-neutral-900"
             >
-              <Icon as={SearchIcon} />
+              <Icon as={UserRound} />
             </Pressable>
           </View>
         </View>
@@ -45,14 +45,14 @@ export default function Layout() {
             name="home"
             options={{
               title: 'Para você',
-              animation: 'shift',
+              animation: 'none',
               transitionSpec: {
                 animation: 'timing',
                 config: {
                   duration: 200,
                 },
               },
-              sceneStyle: { backgroundColor: 'black' },
+              sceneStyle: { backgroundColor: 'transparent' },
               tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
               tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
               tabBarIcon: ({ color }) => (
@@ -65,14 +65,14 @@ export default function Layout() {
             name="lancamentos"
             options={{
               title: 'Lançamentos',
-              animation: 'shift',
+              animation: 'none',
               transitionSpec: {
                 animation: 'timing',
                 config: {
                   duration: 200,
                 },
               },
-              sceneStyle: { backgroundColor: 'black' },
+              sceneStyle: { backgroundColor: 'transparent' },
               tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
               tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
               tabBarIcon: ({ color }) => (
@@ -82,17 +82,35 @@ export default function Layout() {
           />
 
           <Tabs.Screen
-            name="perfil"
+            name="detalhe"
             options={{
-              title: 'Perfil',
-              animation: 'shift',
+              title: 'Detalhe',
+              href: null,
+              animation: 'none',
               transitionSpec: {
                 animation: 'timing',
                 config: {
                   duration: 200,
                 },
               },
-              sceneStyle: { backgroundColor: 'black' },
+              sceneStyle: { backgroundColor: 'transparent' },
+              tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
+            }}
+          />
+
+          <Tabs.Screen
+            name="perfil"
+            options={{
+              title: 'Perfil',
+              href: null,
+              animation: 'none',
+              transitionSpec: {
+                animation: 'timing',
+                config: {
+                  duration: 200,
+                },
+              },
+              sceneStyle: { backgroundColor: 'transparent' },
               tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
               tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
               tabBarIcon: ({ color }) => (

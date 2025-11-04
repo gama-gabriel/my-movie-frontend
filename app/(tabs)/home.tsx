@@ -3,13 +3,13 @@ import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
 import { Text, ActivityIndicator, RefreshControl, View, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { QueryFunctionContext, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import Animated, { FadeOut } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { Image } from 'expo-image';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, memo } from 'react';
 import { FlashList, FlashListProps } from '@shopify/flash-list';
 import { debounce } from 'lodash';
 import { Badge, BadgeText } from '@/components/ui/badge'
-import { neutral700 } from '../../../constants/constants'
+import { neutral700 } from '../../constants/constants'
 import { useRatingDrawer } from '@/contexts/RatingDrawerContext';
 import { Skeleton } from 'moti/skeleton'
 import EventBus from '@/utils/EventBus'
@@ -71,8 +71,6 @@ const HeaderList = () => (
   </View>
 );
 
-
-
 type ImagesQueryKey = readonly ['images'];
 const imagesQueryKey = (): ImagesQueryKey => ['images'] as const;
 
@@ -118,8 +116,8 @@ const fetchImagesBase = async (
           signal,
           body: JSON.stringify({
             clerk_id: clerkId,
-            page_number: 1,
-            page_size: 10,
+            cursor: page,
+            limit: 10,
             refresh,
           }),
         }
@@ -158,8 +156,8 @@ const fetchImagesBase = async (
           signal,
           body: JSON.stringify({
             clerk_id: clerkId,
-            page_number: page,
-            page_size: 10,
+            cursor: page * 10,
+            limit: 10,
             refresh,
           }),
         }
@@ -241,6 +239,41 @@ export const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as AnimatedFlashListType<any>
 );
 
+const RatingLeaf = memo(function RatingLeaf({
+  id,
+  onRate,
+}: {
+  id: string;
+  onRate: (rating: number, item: Media) => void;
+}) {
+  const rating = useMediaRatingsStore((s) => s.ratings.get(id) ?? 0);
+
+  const setRating = useMediaRatingsStore((s) => s.setRating);
+
+  const handleRatingChange = useCallback(
+    (newRating: number) => {
+      setRating(id, newRating);
+      setTimeout(() => {
+        onRate?.(newRating, { id } as any);
+      }, 0);
+    },
+    [id, onRate, setRating]
+  );
+
+  return (
+    <>
+      <Text className="text-white text-lg">Toque em uma estrela para avaliar</Text>
+      <StarRating
+        maxStars={5}
+        size={48}
+        rating={rating}
+        disabled={!!rating}
+        onRatingChange={handleRatingChange}
+      />
+    </>
+  );
+});
+
 export function ListaMedias() {
   const queryClient = useQueryClient();
   const { user } = useUser();
@@ -296,6 +329,7 @@ export function ListaMedias() {
     [hasNextPage, isFetchingNextPage, fetchNextPage]
   );
 
+
   if (status === 'pending' || isRefetching) {
     return (
       <SkeletonFlashList />
@@ -313,12 +347,10 @@ export function ListaMedias() {
     );
   }
 
-
-
   return (
-    <Animated.View
+    <View
       className='flex-1 w-full bg-black'
-      exiting={FadeOut.duration(200)}>
+      >
       <FlashList
         contentContainerClassName="pt-20"
         ref={listRef}
@@ -326,6 +358,7 @@ export function ListaMedias() {
         ListHeaderComponent={HeaderList}
         className='flex flex-col gap-2 w-full'
         data={images}
+
         keyExtractor={(item) => item.id}
         refreshControl={
           <RefreshControl
@@ -365,7 +398,7 @@ export function ListaMedias() {
           ) : null
         }
       />
-    </Animated.View>
+    </View>
   );
 }
 
@@ -375,36 +408,33 @@ const ImageItem = ({ item }: { item: Media }) => {
   const setMedia = useMediaStore((state) => state.setMedia);
   const setRatingStore = useRatingStore((state) => state.setRating);
 
-  // const { openDrawer } = useRatingDrawer();
   const { onRate } = useRatingDrawer();
-  const [rating, setRating] = useState(0);
-  const currentRating = useMediaRatingsStore((s) => s.getRating(item.id));
 
-  const handleRatingChange = (newRating: number) => {
-    setRating(newRating);
-    onRate(newRating, item);
-  }
+  const currentRating = useMediaRatingsStore(
+    useCallback((s) => s.ratings.get(item.id) ?? 0, [item.id])
+  );
+  const setRating = useMediaRatingsStore((s) => s.setRating);
 
   const handleIrParaDetalhes = (media: Media, rating: number) => {
     setMedia(media);
-    if (currentRating) {
-      setRatingStore(currentRating);
-    } else {
-      setRatingStore(rating);
-    }
+    setRatingStore(rating)
 
-    router.push({
-      pathname: "/(tabs)/home/detalhe",
-    });
+    router.navigate("/(tabs)/detalhe");
   };
-
   const blurhash = 'B0JH:g-;fQ_3fQfQ';
 
   const uri = `https://image.tmdb.org/t/p/original/${item.backdrop_path}`;
 
+  const handleRatingFromItem = useCallback((newRating: number) => {
+    setRating(item.id, newRating);
+    setTimeout(() => onRate(newRating, item), 0);
+  }, [item, onRate, setRating]);
+
   return (
-    <View key={currentRating} className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
-      <Pressable onPress={() => handleIrParaDetalhes(item, rating)}>
+    <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8' >
+      <Pressable onPress={() => handleIrParaDetalhes(item, currentRating ?? 0)}
+      key={item.id}
+      >
         <Image
           source={{ uri }}
           style={{ width: "100%", aspectRatio: 3 / 2, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
@@ -417,13 +447,13 @@ const ImageItem = ({ item }: { item: Media }) => {
       </Pressable>
 
       <View className='p-4 gap-2 bg-white/5'>
-        <Pressable onPress={() => handleIrParaDetalhes(item, rating)}>
+        <Pressable onPress={() => handleIrParaDetalhes(item, currentRating ?? 0)}>
           <Text className='text-white font-bold m-0'>{item.title}</Text>
         </Pressable>
 
         <Pressable
           className='flex flex-row justify-between items-center gap-4'
-          onPress={() => handleIrParaDetalhes(item, rating)}
+          onPress={() => handleIrParaDetalhes(item, currentRating ?? 0)}
         >
           <Text className='text-neutral-500'>{item.release_date.slice(0, 4)}</Text>
 
@@ -432,27 +462,8 @@ const ImageItem = ({ item }: { item: Media }) => {
           </Badge>
         </Pressable>
 
-        {/* <View className='flex flex-row justify-end mt-2' >
-          <AnimatedButton
-            activeColor={neutral700}
-            inactiveColor='transparent'
-            className='w-full border border-neutral-500 '
-            onPress={() => openDrawer(item)}
-          >
-            <ButtonIcon as={Star} color="#dddddd" />
-            <ButtonText className='px-2'>Avaliar</ButtonText>
-          </AnimatedButton>
-        </View> */}
-
         <View className='flex flex-col gap-2 w-full justify-center items-center pt-4'>
-          <Text className='text-white text-lg'>Toque em uma estrela para avaliar</Text>
-          <StarRating
-            maxStars={5}
-            size={48}
-            rating={currentRating ? currentRating : rating}
-            disabled={rating > 0 || currentRating !== undefined}
-            onRatingChange={handleRatingChange}
-          />
+          <RatingLeaf id={item.id} onRate={handleRatingFromItem}></RatingLeaf>
         </View>
       </View>
     </View>
@@ -460,6 +471,7 @@ const ImageItem = ({ item }: { item: Media }) => {
 };
 
 export default function Page() {
+
   return (
     <>
       <SignedIn>

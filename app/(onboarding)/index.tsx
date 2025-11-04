@@ -96,7 +96,7 @@ export default function Onboarding() {
 
   if (!userExists?.exists && createdUser) {
     console.log("User created successfully, redirecting to onboarding");
-    return <Redirect href="/(auth)/home" />
+    return <Redirect href="/(tabs)/home" />
   }
 
   if (!userExists?.exists) {

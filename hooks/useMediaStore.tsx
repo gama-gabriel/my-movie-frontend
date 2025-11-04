@@ -4,6 +4,7 @@ import { create } from "zustand";
 interface MediaStore {
   media: Media | null;
   setMedia: (media: Media) => void;
+  clearMedia: () => void;
 }
 
 interface RatingStore {
@@ -11,17 +12,10 @@ interface RatingStore {
   setRating: (rating: number) => void;
 }
 
-interface RatingsStore {
-  ratings: Record<string, number>;
-  setRating: (mediaId: string, rating: number) => void;
-  getRating: (mediaId: string) => number | undefined;
-  clearRating: (mediaId: string) => void;
-  clearAll: () => void;
-}
-
 export const useMediaStore = create<MediaStore>((set) => ({
   media: null,
   setMedia: (media: Media) => set({ media }),
+  clearMedia: () => set({ media: null })
 }));
 
 export const useRatingStore = create<RatingStore>((set) => ({
@@ -29,18 +23,43 @@ export const useRatingStore = create<RatingStore>((set) => ({
   setRating: (rating: number) => set({ rating }),
 }));
 
+interface RatingsStore {
+  ratings: Map<string, number>;
+  version: number; // bumps on each mutation
+  setRating: (mediaId: string, rating: number) => void;
+  getRating: (mediaId: string) => number | undefined;
+  clearRating: (mediaId: string) => void;
+  clearAll: () => void;
+}
+
 export const useMediaRatingsStore = create<RatingsStore>((set, get) => ({
-  ratings: {},
-  setRating: (mediaId, rating) =>
-    set((state) => ({
-      ratings: { ...state.ratings, [mediaId]: rating },
-    })),
-  getRating: (mediaId) => get().ratings[mediaId],
+  ratings: new Map(),
+  version: 0,
+
+  setRating: (id, rating) =>
+    set((state) => {
+      // Check if the rating is different before updating
+      if (state.ratings.get(id) === rating) return {}; // No change
+
+      // Mutate the Map in-place (cheap) and bump the version for shallow re-render
+      state.ratings.set(id, rating);
+      const newVersion = state.version + 1;
+      return { ratings: state.ratings, version: newVersion };
+    }),
+
+  getRating: (mediaId) => get().ratings.get(mediaId),
+
   clearRating: (mediaId) =>
     set((state) => {
-      const newRatings = { ...state.ratings };
-      delete newRatings[mediaId];
-      return { ratings: newRatings };
+      if (!state.ratings.has(mediaId)) return {};
+      state.ratings.delete(mediaId);
+      return { version: state.version + 1 };
     }),
-  clearAll: () => set({ ratings: {} }),
+
+  clearAll: () =>
+    set((state) => {
+      if (state.ratings.size === 0) return {};
+      state.ratings.clear();
+      return { version: state.version + 1 };
+    }),
 }));
