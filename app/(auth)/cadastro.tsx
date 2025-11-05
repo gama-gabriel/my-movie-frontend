@@ -148,7 +148,7 @@ export default function Cadastro() {
         await
           router.replace({
             pathname: '/(onboarding)',
-            params: { username: nome }
+            params:{ username: nome }
           })
       } else {
         // If the status is not complete, check why. User may need to

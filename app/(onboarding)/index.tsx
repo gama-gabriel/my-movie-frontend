@@ -52,6 +52,7 @@ const createUser = async (user: UserResource, username: string | undefined) => {
   if (!response.ok) throw Error('Network response was not ok');
   const data = await response.json();
   console.warn(data)
+  user.reload()
   return data;
 }
 

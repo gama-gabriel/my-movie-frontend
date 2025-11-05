@@ -7,11 +7,14 @@ import { Text } from 'react-native'
 import { AnimatedButton } from './AnimatedButton'
 import {  neutral100, neutral900 } from '@/constants/constants'
 import { LogOutIcon } from 'lucide-react-native'
+import { useMediaRatingsStore } from '@/hooks/useMediaStore'
 
 const SignOutButton = () => {
   // Use `useClerk()` to access the `signOut()` function
   const { signOut } = useClerk()
   const router = useRouter()
+
+  const clearStore = useMediaRatingsStore(s => s.clearAll);
 
   const [mostrarDialogConfirmacao, setMostrarDialogConfirmacao] = React.useState(false);
 
@@ -19,8 +22,9 @@ const SignOutButton = () => {
 
   const handleSignOut = async () => {
     try {
+      clearStore()
       await signOut()
-      router.replace('/(auth)/home')
+      router.replace('/(auth)/login')
       // Redirect to your desired page
     } catch (err) {
       // See https://clerk.com/docs/custom-flows/error-handling

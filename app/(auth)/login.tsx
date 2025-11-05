@@ -29,6 +29,15 @@ export default function Page() {
 
   const [loading, setLoading] = React.useState(false)
 
+  const fadeInStagger = (index: number) =>
+    FadeIn
+      .duration(250)
+      .delay(index * 100)
+      .springify()
+      .withInitialValues({
+        transform: [{ translateY: 20 }],
+      })
+
   const checkEmail = (email: string) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
     setEmailValido(emailRegex.test(email))
@@ -92,18 +101,20 @@ export default function Page() {
     <SafeAreaView edges={['top']} className='flex-1 items-center justify-start p-4 bg-black'>
       <Pressable className='w-full h-fit items-center justify-start gap-4' onPress={() => { Keyboard.dismiss() }}>
 
-        <View className='flex flex-col py-6 gap-4 items-center'>
+        <Animated.View className='flex flex-col py-6 gap-4 items-center' entering={fadeInStagger(0)}>
           <Text className="m-0  text-4xl font-bold text-white">
-            Bem-vindo de volta
+            Bem-vindo
           </Text>
           <Text className="m-0 text-lg text-neutral-100">
             Entre em sua conta para continuar
           </Text>
-        </View>
+        </Animated.View>
 
-        <SignInGoogleButton />
+        <Animated.View entering={fadeInStagger(1)} className='w-full'>
+          <SignInGoogleButton />
+        </Animated.View>
 
-        <View className='w-full'>
+        <Animated.View className='w-full' entering={fadeInStagger(2)}>
           <View className="relative my-4">
             <View className="relative flex-row justify-center z-10">
               <Text className=" bg-black text-center text-neutral-100 text-sm px-2">
@@ -114,9 +125,9 @@ export default function Page() {
               <View className="w-full border-t border-neutral-500" />
             </View>
           </View>
-        </View>
+        </Animated.View>
 
-        <View className='w-full flex flex-col gap-2 pb-6'>
+        <Animated.View className='w-full flex flex-col gap-2 pb-6' entering={fadeInStagger(3)}>
           <View className='flex flex-col w-full gap-1'>
             <Text className='text-white pb-1 font-bold ps-4'>E-mail</Text>
             <Input size='xl' isInvalid={!emailValido}>
@@ -214,16 +225,19 @@ export default function Page() {
             }
 
           </View>
-        </View>
+        </Animated.View>
 
-        <AnimatedButton activeColor={primaryDark} inactiveColor={primary} onPress={onEntrarPress} variant='solid' action='primary' size='xl' className='w-full transition disabled:bg-primary-black'>
-          <ButtonSpinner className={loading ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white' ></ButtonSpinner>
-          <ButtonText className='text-white font-bold pl-4 data-[disabled=true]:text-neutral-500'>Continuar</ButtonText>
-        </AnimatedButton>
+        <Animated.View entering={fadeInStagger(4)} className='w-full'>
+
+          <AnimatedButton activeColor={primaryDark} inactiveColor={primary} onPress={onEntrarPress} variant='solid' action='primary' size='xl' className='w-full transition disabled:bg-primary-black'>
+            <ButtonSpinner className={loading ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white' ></ButtonSpinner>
+            <ButtonText className='text-white font-bold pl-4 data-[disabled=true]:text-neutral-500'>Continuar</ButtonText>
+          </AnimatedButton>
+
+        </Animated.View>
 
 
-
-        <View className='flex flex-col items-center justify-center gap-4 '>
+        <Animated.View className='flex flex-col items-center justify-center gap-4 ' entering={fadeInStagger(4)}>
           <View className='flex-row'>
             <Text className='text-white'>Não possui uma conta?</Text>
 
@@ -231,7 +245,7 @@ export default function Page() {
               <Text className='text-primary-light'> Cadastre-se</Text>
             </Link>
           </View>
-        </View>
+        </Animated.View>
 
       </Pressable>
 

@@ -13,6 +13,7 @@ import { AnimatedButton } from "../../components/AnimatedButton";
 import { danger, neutral100, neutral900 } from "@/constants/constants";
 import { KeyRoundIcon, ListIcon, PencilIcon, Trash2Icon } from "lucide-react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { useMediaRatingsStore } from "@/hooks/useMediaStore";
 
 export default function Perfil() {
 
@@ -32,12 +33,15 @@ export default function Perfil() {
   const handleClose = () => setMostrarDialogConfirmacao(false);
   const handleCloseExclusao = () => setMostrarDialogExclusao(false);
 
+  const clearStore = useMediaRatingsStore(s => s.clearAll);
+
   const openDialogExclusao = () => {
     setMostrarDialogConfirmacao(false);
     setMostrarDialogExclusao(true);
   }
 
   useEffect(() => {
+    console.log(user)
     const metadata = user?.publicMetadata
     if (metadata?.username) {
       setUsername(metadata.username as string)
@@ -84,6 +88,7 @@ export default function Perfil() {
     mutationFn: excluirUsuarioFn,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["images"] });
+      clearStore()
     },
   });
 
@@ -92,7 +97,7 @@ export default function Perfil() {
     try {
       excluirMutation.mutate(user!.id);
       await signOut();
-      router.replace('/(auth)/home')
+      router.replace('/(auth)/login')
       toast.show("Conta excluída com sucesso!", "success")
     } catch (err) {
       console.error("Erro ao excluir usuário: ", err)

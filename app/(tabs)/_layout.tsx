@@ -7,6 +7,7 @@ import { RatingDrawer } from '@/components/RatingDrawer';
 import { RatingDrawerProvider } from '@/contexts/RatingDrawerContext';
 import { neutral900, primaryLight } from '@/constants/constants';
 import Logo from '@/assets/logo.svg'
+import EventBus from '@/utils/EventBus';
 
 export default function Layout() {
   const insets = useSafeAreaInsets();
@@ -22,7 +23,7 @@ export default function Layout() {
         >
           <View className="flex-row items-center justify-between p-6 h-20">
 
-            <Logo height={'100%'} preserveAspectRatio="xMinYMin meet" style={{flex: 1}}></Logo>
+            <Logo height={'100%'} preserveAspectRatio="xMinYMin meet" style={{ flex: 1 }}></Logo>
             {/* <Text className="text-white text-lg font-bold">LOGO</Text> */}
             <Pressable
               onPress={() => router.navigate('/(tabs)/perfil')}
@@ -62,6 +63,17 @@ export default function Layout() {
                 <Icon as={Home} style={{ width: 20, height: 20, color: color }} />
               ),
             }}
+            listeners={({ navigation, route }) => ({
+              tabPress: (e) => {
+                const isFocused = navigation.isFocused();
+
+                if (isFocused) {
+                  // prevent re-navigation behavior
+                  e.preventDefault();
+                  EventBus.emit('scrollToTopHome');
+                }
+              },
+            })}
           />
 
           <Tabs.Screen
