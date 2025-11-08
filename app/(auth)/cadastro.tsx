@@ -148,7 +148,7 @@ export default function Cadastro() {
         await
           router.replace({
             pathname: '/(onboarding)',
-            params:{ username: nome }
+            params: { username: nome }
           })
       } else {
         // If the status is not complete, check why. User may need to
@@ -187,6 +187,7 @@ export default function Cadastro() {
               <Text className='text-white pb-1 ps-4 font-bold w-fit'>Código de verificação</Text>
               <Input size='xl' isInvalid={!codigoValido}>
                 <InputField
+                  className='flex-1'
                   keyboardType='numeric'
                   autoCapitalize="none"
                   value={codigo}
@@ -280,7 +281,7 @@ export default function Cadastro() {
               <Text className='text-white pb-1 ps-4 font-bold'>Nome</Text>
               <Input size='xl' isInvalid={!nomeValido}>
                 <InputField
-                  className='autofill:bg-transparent bg-red-900'
+                  className='flex-1'
                   autoCapitalize="none"
                   value={nome}
                   placeholder="Seu nome de usuário"
@@ -315,7 +316,7 @@ export default function Cadastro() {
               <Text className='text-white pb-1 ps-4 font-bold'>E-mail</Text>
               <Input size='xl' isInvalid={!emailValido}>
                 <InputField
-                  className='autofill:bg-transparent bg-red-900'
+                  className='flex-1'
                   autoCapitalize="none"
                   value={email}
                   placeholder="seuemail@email.com"
@@ -349,6 +350,7 @@ export default function Cadastro() {
 
               <Input size='xl' isInvalid={!senhaValida}>
                 <InputField
+                  className='flex-1'
                   value={senha}
                   onChangeText={(password) => {
                     setSenha(password)
@@ -389,6 +391,7 @@ export default function Cadastro() {
 
               <Input size='xl' isInvalid={!senhasIguais}>
                 <InputField
+                  className='flex-1'
                   value={senhaConfirmada}
                   onChangeText={(password) => {
                     changeSenhaConfirmada(password)

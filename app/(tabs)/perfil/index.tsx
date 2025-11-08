@@ -288,7 +288,6 @@ export default function Perfil() {
 
               </View>
 
-
             </View>
           </ScrollView>
         </Animated.View >

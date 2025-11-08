@@ -150,6 +150,7 @@ export default function ForgotPasswordScreen() {
               <Text className='text-white pb-1 font-bold ps-4 data-[readonly=true]:bg-red-900'>E-mail</Text>
               <Input size='xl' isReadOnly={!!userEmail}>
                 <InputField
+                  className='flex-1'
                   type='text'
                   value={email}
                   onChangeText={(email) => {
@@ -222,6 +223,7 @@ export default function ForgotPasswordScreen() {
               <Text className='text-white pb-1 font-bold ps-4'>Código</Text>
               <Input size='xl' isInvalid={!codigoValido}>
                 <InputField
+                  className='flex-1'
                   type='text'
                   keyboardType="numeric"
                   value={codigo}
@@ -254,6 +256,7 @@ export default function ForgotPasswordScreen() {
 
               <Input size='xl' isInvalid={!senhaValida}>
                 <InputField
+                  className='flex-1'
                   value={senha}
                   onChangeText={(password) => {
                     setSenha(password)
@@ -293,6 +296,7 @@ export default function ForgotPasswordScreen() {
 
               <Input size='xl' isInvalid={!senhasIguais}>
                 <InputField
+                  className='flex-1'
                   value={senhaConfirmada}
                   onChangeText={(password) => {
                     changeSenhaConfirmada(password)

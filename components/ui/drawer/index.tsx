@@ -77,11 +77,11 @@ const drawerStyle = tva({
 });
 
 const drawerBackdropStyle = tva({
-  base: 'absolute left-0 top-0 right-0 bottom-0 bg-background-dark web:cursor-default',
+  base: 'absolute left-0 top-0 right-0 bottom-0 bg-black/75 web:cursor-default',
 });
 
 const drawerContentStyle = tva({
-  base: 'bg-black overflow-scroll border-outline-100 p-6 absolute',
+  base: 'bg-black overflow-scroll rounded-3xl border-danger p-6 absolute',
   parentVariants: {
     size: {
       sm: 'w-1/4',

@@ -4,6 +4,7 @@ import { Text } from "react-native";
 import { CheckIcon, CircleAlertIcon, InfoIcon } from "lucide-react-native";
 import { Toast, useToast } from "@/components/ui/toast";
 import { danger, success, warning } from "@/constants/constants";
+import { ToastPlacement } from "@gluestack-ui/core/lib/esm/toast/creator/types";
 
 const toastIcons = {
   success: CheckIcon,
@@ -21,7 +22,7 @@ export const useToastVariant = () => {
   const toast = useToast();
 
   const show = React.useCallback(
-    (message: string, type: "success" | "error" | "warning" = "success") => {
+    (message: string, type: "success" | "error" | "warning" = "success", placement: ToastPlacement = 'bottom') => {
       const id = Math.random().toString();
       if (toast.isActive(id)) return;
 
@@ -29,13 +30,13 @@ export const useToastVariant = () => {
 
       toast.show({
         id,
-        placement: "bottom",
+        placement,
         duration: 3000,
         render: ({ id }) => {
           const uniqueToastId = "toast-" + id;
           return (
             <SafeAreaView
-              edges={["bottom", "left", "right"]}
+              edges={["bottom", "left", "right", 'top']}
               className="pb-4 flex"
             >
               <Toast

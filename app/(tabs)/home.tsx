@@ -1,7 +1,7 @@
 import { Heading } from '@/components/ui/heading'
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
 import { Text, ActivityIndicator, RefreshControl, View, Pressable } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { QueryFunctionContext, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Image } from 'expo-image';
@@ -14,9 +14,12 @@ import { useRatingDrawer } from '@/contexts/RatingDrawerContext';
 import { Skeleton } from 'moti/skeleton'
 import EventBus from '@/utils/EventBus'
 import { useFocusEffect, useRouter } from 'expo-router'
-import { Media, ResponseMedia } from '@/types/media.t'
+import { Media, ResponseMedia } from '@/types/media.types'
 import { useMediaRatingsStore, useMediaStore, useRatingStore } from '@/hooks/useMediaStore'
 import { StarRating } from '@/components/RatingDrawer'
+import Logo from '@/assets/logo.svg'
+import { Icon } from '@/components/ui/icon';
+import { UserRound } from 'lucide-react-native';
 
 interface Pagina {
   media: Media[];
@@ -61,7 +64,7 @@ export function SkeletonFlashList() {
 }
 
 const HeaderList = () => (
-  <View className='w-full flex flex-row items-center justify-start gap-4 bg-black px-4 pb-2'>
+  <View className='w-full flex flex-row items-center justify-start gap-4 bg-danger px-4 pb-2'>
     <Heading className="m-0 text-xl font-bold text-white w-fit">
       Recomendado para você
     </Heading>
@@ -494,9 +497,27 @@ export default function Page() {
     transform: [{ translateX: translateX.value }],
   }));
 
+
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+
   return (
     <>
       <SignedIn>
+        <View
+          className="absolute w-full left-0 z-10 h-20 bg-black/50 border-b border-neutral-900"
+        >
+          <View className="flex-row items-center justify-between p-6 h-20">
+
+            <Logo height={'100%'} preserveAspectRatio="xMinYMin meet" style={{ flex: 1 }}></Logo>
+            <Pressable
+              onPress={() => router.navigate('/(tabs)/perfil')}
+              className="p-3 rounded-full bg-neutral-900"
+            >
+              <Icon as={UserRound} />
+            </Pressable>
+          </View>
+        </View>
         <Animated.View className='flex-1' style={animatedStyle} >
           <ListaMedias />
         </Animated.View>

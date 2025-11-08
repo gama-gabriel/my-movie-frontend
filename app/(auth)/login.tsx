@@ -132,6 +132,7 @@ export default function Page() {
             <Text className='text-white pb-1 font-bold ps-4'>E-mail</Text>
             <Input size='xl' isInvalid={!emailValido}>
               <InputField
+                className='flex-1'
                 type='text'
                 value={email}
                 onChangeText={(email) => {
@@ -175,6 +176,7 @@ export default function Page() {
 
             <Input size='xl' isInvalid={!senhaValida}>
               <InputField
+                className='flex-1'
                 type={mostrarSenha ? 'text' : 'password'}
                 value={senha}
                 onChangeText={(senha) => {

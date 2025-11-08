@@ -17,14 +17,13 @@ export default function Layout() {
     <RatingDrawerProvider>
       <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-black">
         {/* Custom Header */}
-        <View
+        {/* <View
           className="absolute w-full left-0 z-10 h-20 bg-black/90 border-b border-neutral-900"
           style={{ top: insets.top }}
         >
           <View className="flex-row items-center justify-between p-6 h-20">
 
             <Logo height={'100%'} preserveAspectRatio="xMinYMin meet" style={{ flex: 1 }}></Logo>
-            {/* <Text className="text-white text-lg font-bold">LOGO</Text> */}
             <Pressable
               onPress={() => router.navigate('/(tabs)/perfil')}
               className="p-3 rounded-full bg-neutral-900"
@@ -32,7 +31,7 @@ export default function Layout() {
               <Icon as={UserRound} />
             </Pressable>
           </View>
-        </View>
+        </View> */}
 
         <Tabs
           screenOptions={{
@@ -68,12 +67,24 @@ export default function Layout() {
                 const isFocused = navigation.isFocused();
 
                 if (isFocused) {
-                  // prevent re-navigation behavior
                   e.preventDefault();
                   EventBus.emit('scrollToTopHome');
                 }
               },
             })}
+          />
+
+          <Tabs.Screen
+            name="pesquisa"
+            options={{
+              title: 'Procurar',
+              sceneStyle: { backgroundColor: 'transparent' },
+              tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
+              tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
+              tabBarIcon: ({ color }) => (
+                <Icon as={SearchIcon} style={{ width: 20, height: 20, color: color }} />
+              ),
+            }}
           />
 
           <Tabs.Screen

@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { createContext, useContext, useState } from 'react';
 import { useUser } from '@clerk/clerk-expo';
 import { useToastVariant } from '@/hooks/useToastVariant';
-import { Media } from '@/types/media.t';
+import { Media } from '@/types/media.types';
 
 interface RatingDrawerContextType {
   isOpen: boolean;

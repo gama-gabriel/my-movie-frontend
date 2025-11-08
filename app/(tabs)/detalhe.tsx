@@ -9,7 +9,7 @@ import { FlashList } from "@shopify/flash-list";
 import { useRatingDrawer } from "@/contexts/RatingDrawerContext";
 import { StarRating } from "@/components/RatingDrawer";
 import React, { useCallback, useEffect, useRef } from "react";
-import { CastMember } from "@/types/media.t";
+import { CastMember } from "@/types/media.types";
 import { Skeleton } from "moti/skeleton";
 import { useFocusEffect } from "expo-router";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";

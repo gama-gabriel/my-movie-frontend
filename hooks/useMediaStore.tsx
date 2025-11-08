@@ -1,4 +1,4 @@
-import { Media } from "@/types/media.t";
+import { Media } from "@/types/media.types";
 import { create } from "zustand";
 
 interface MediaStore {

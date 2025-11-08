@@ -136,6 +136,7 @@ const AlterarSenha = () => {
 
             <Input size='xl' isInvalid={!senhaAtualValida}>
               <InputField
+                className='flex-1'
                 value={senhaAtual}
                 onChangeText={(password) => {
                   setSenhaAtual(password)
@@ -174,6 +175,7 @@ const AlterarSenha = () => {
 
             <Input size='xl' isInvalid={!senhaValida}>
               <InputField
+                className='flex-1'
                 value={novaSenha}
                 onChangeText={(password) => {
                   setNovaSenha(password)
@@ -213,6 +215,7 @@ const AlterarSenha = () => {
 
             <Input size='xl' isInvalid={!senhasIguais}>
               <InputField
+                className='flex-1'
                 value={novaSenhaConfirmada}
                 onChangeText={(password) => {
                   setNovaSenhaConfirmada(password)
