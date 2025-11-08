@@ -1,7 +1,7 @@
 import { Heading } from '@/components/ui/heading'
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
 import { Text, ActivityIndicator, RefreshControl, View, Pressable } from 'react-native'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { QueryFunctionContext, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Image } from 'expo-image';
@@ -64,7 +64,7 @@ export function SkeletonFlashList() {
 }
 
 const HeaderList = () => (
-  <View className='w-full flex flex-row items-center justify-start gap-4 bg-danger px-4 pb-2'>
+  <View className='w-full flex flex-row items-center justify-start gap-4 px-4 pb-2'>
     <Heading className="m-0 text-xl font-bold text-white w-fit">
       Recomendado para você
     </Heading>
@@ -422,7 +422,7 @@ const ImageItem = ({ item }: { item: Media }) => {
     setMedia(media);
     setRatingStore(rating)
 
-    router.navigate("/(tabs)/detalhe");
+    router.push("/(tabs)/detalhe");
   };
   const blurhash = 'B0JH:g-;fQ_3fQfQ';
 
@@ -498,20 +498,19 @@ export default function Page() {
   }));
 
 
-  const insets = useSafeAreaInsets();
   const router = useRouter();
 
   return (
     <>
       <SignedIn>
         <View
-          className="absolute w-full left-0 z-10 h-20 bg-black/50 border-b border-neutral-900"
+          className="absolute w-full left-0 z-10 h-20 bg-black/70 border-b border-neutral-900"
         >
           <View className="flex-row items-center justify-between p-6 h-20">
 
             <Logo height={'100%'} preserveAspectRatio="xMinYMin meet" style={{ flex: 1 }}></Logo>
             <Pressable
-              onPress={() => router.navigate('/(tabs)/perfil')}
+              onPress={() => router.push('/(tabs)/perfil')}
               className="p-3 rounded-full bg-neutral-900"
             >
               <Icon as={UserRound} />

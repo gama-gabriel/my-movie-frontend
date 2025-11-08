@@ -1,37 +1,17 @@
-import { Tabs, useRouter } from 'expo-router';
-import { View, Text, Pressable } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Tabs  } from 'expo-router';
+import { SafeAreaView  } from 'react-native-safe-area-context';
 import { Icon } from '@/components/ui/icon';
 import { Home, Sparkles, UserRound, SearchIcon } from 'lucide-react-native';
 import { RatingDrawer } from '@/components/RatingDrawer';
 import { RatingDrawerProvider } from '@/contexts/RatingDrawerContext';
 import { neutral900, primaryLight } from '@/constants/constants';
-import Logo from '@/assets/logo.svg'
 import EventBus from '@/utils/EventBus';
 
 export default function Layout() {
-  const insets = useSafeAreaInsets();
-  const router = useRouter();
 
   return (
     <RatingDrawerProvider>
       <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-black">
-        {/* Custom Header */}
-        {/* <View
-          className="absolute w-full left-0 z-10 h-20 bg-black/90 border-b border-neutral-900"
-          style={{ top: insets.top }}
-        >
-          <View className="flex-row items-center justify-between p-6 h-20">
-
-            <Logo height={'100%'} preserveAspectRatio="xMinYMin meet" style={{ flex: 1 }}></Logo>
-            <Pressable
-              onPress={() => router.navigate('/(tabs)/perfil')}
-              className="p-3 rounded-full bg-neutral-900"
-            >
-              <Icon as={UserRound} />
-            </Pressable>
-          </View>
-        </View> */}
 
         <Tabs
           screenOptions={{

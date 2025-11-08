@@ -1,5 +1,5 @@
 import { useMediaRatingsStore, useMediaStore } from "@/hooks/useMediaStore";
-import { View, Text } from "react-native";
+import { View, Text, BackHandler } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Badge, BadgeText } from "@/components/ui/badge";
@@ -11,7 +11,7 @@ import { StarRating } from "@/components/RatingDrawer";
 import React, { useCallback, useEffect, useRef } from "react";
 import { CastMember } from "@/types/media.types";
 import { Skeleton } from "moti/skeleton";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 export default function Detalhe() {
@@ -23,6 +23,27 @@ export default function Detalhe() {
   const setCurrentRating = useMediaRatingsStore((s) => s.setRating);
 
   const { onRate } = useRatingDrawer();
+
+  const params = useLocalSearchParams();
+  const router = useRouter()
+
+  useEffect(() => {
+    const backAction = () => {
+      if (params.from === 'pesquisa') {
+        router.push('/(tabs)/pesquisa');
+      } else {
+        router.back();
+      }
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [router, params]);
 
   const handleRatingChange = useCallback(
     (newRating: number) => {
@@ -63,7 +84,7 @@ export default function Detalhe() {
         opacity.value = 0
         clearMedia();
       }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [opacity])
   );
 

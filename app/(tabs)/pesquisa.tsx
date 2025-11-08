@@ -1,30 +1,32 @@
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
-import React, { Ref, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { View, Text, Pressable, TextInput, TextInputProps } from 'react-native'
-import AnimatedButton from '../components/AnimatedButton';
+import React, { memo, Ref, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { View, Text, Pressable, TextInput, TextInputProps, ActivityIndicator } from 'react-native'
+import { AnimatedButton } from '../components/AnimatedButton';
 import { danger, generos, generosJson, neutral700, neutral900, primary, primaryDark, primaryLight } from '@/constants/constants';
 import { ButtonIcon, ButtonSpinner, ButtonText } from '@/components/ui/button';
-import { ArrowDown01Icon, ArrowDown10Icon, ArrowDownUpIcon, ChevronDownIcon, CircleXIcon, FilterIcon, SearchIcon, SlidersHorizontalIcon } from 'lucide-react-native';
-import Animated, { Easing, FadeIn, FadeOut, LightSpeedOutLeft, Layout, runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming, ZoomOutDown, ZoomOut, ZoomOutEasyDown, FadeOutLeft, FadeOutUp, FadeOutRight, StretchOutY } from 'react-native-reanimated';
+import { ArrowDown01Icon, ArrowDown10Icon, ArrowDownUpIcon, CircleXIcon, SearchIcon, SlidersHorizontalIcon } from 'lucide-react-native';
+import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withTiming, } from 'react-native-reanimated';
 import { ScrollView } from 'react-native-gesture-handler';
 import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
-import { BuscaRequest, FilterCondition, FilterField, FilterOperator } from '@/types/search.types';
+import { BuscaRequest, FilterCondition, FilterField } from '@/types/search.types';
 import { protectedFetch } from '@/utils/Auth.utils';
-import { useAuth } from '@clerk/clerk-expo';
+import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useToastVariant } from '@/hooks/useToastVariant';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
-import { Media, ResponseMedia } from '@/types/media.types';
+import { Media, MediaSearch, ResponseMediaSearch } from '@/types/media.types';
 import { Skeleton } from 'moti/skeleton';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { CloseIcon, Icon } from '@/components/ui/icon';
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerCloseButton, DrawerContent, DrawerHeader } from '@/components/ui/drawer';
 import { Select, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput, SelectItem, SelectPortal, SelectTrigger } from '@/components/ui/select';
-import { useMediaStore, useRatingStore } from '@/hooks/useMediaStore';
-import { useRouter } from 'expo-router';
+import { useMediaRatingsStore, useMediaStore, useRatingStore } from '@/hooks/useMediaStore';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { StarRating } from '@/components/RatingDrawer';
+import { useRatingDrawer } from '@/contexts/RatingDrawerContext';
 
 interface Pagina {
-  media: Media[];
+  media: MediaSearch[];
   nextPage: number | undefined;
 }
 
@@ -69,6 +71,118 @@ export function SkeletonFlashList() {
     </View>
   );
 }
+
+const RatingLeaf = memo(function RatingLeaf({
+  id,
+  onRate,
+}: {
+  id: string;
+  onRate: (rating: number, item: Media) => void;
+}) {
+  const rating = useMediaRatingsStore((s) => s.ratings.get(id) ?? 0);
+
+  const setRating = useMediaRatingsStore((s) => s.setRating);
+
+  const handleRatingChange = useCallback(
+    (newRating: number) => {
+      setRating(id, newRating);
+      setTimeout(() => {
+        onRate?.(newRating, { id } as any);
+      }, 0);
+    },
+    [id, onRate, setRating]
+  );
+
+  return (
+    <>
+      <Text className="text-white text-lg">Toque em uma estrela para avaliar</Text>
+      <StarRating
+        maxStars={5}
+        size={48}
+        rating={rating}
+        disabled={!!rating}
+        onRatingChange={handleRatingChange}
+      />
+    </>
+  );
+});
+
+const ImageItem = ({ item }: { item: MediaSearch }) => {
+
+  const router = useRouter();
+  const setMedia = useMediaStore((state) => state.setMedia);
+  const setRatingStore = useRatingStore((state) => state.setRating);
+
+  const { onRate } = useRatingDrawer();
+
+  const setRating = useMediaRatingsStore((s) => s.setRating);
+
+  const currentRating = useMediaRatingsStore(
+    useCallback((s) => s.ratings.get(item.id) ?? 0, [item.id])
+  );
+
+  const handleIrParaDetalhes = (media: Media, rating: number) => {
+    setMedia(media);
+    setRatingStore(rating)
+
+    router.push({
+      pathname: "/(tabs)/detalhe",
+      params: { from: "pesquisa" }
+    });
+  };
+  const blurhash = 'B0JH:g-;fQ_3fQfQ';
+
+  const uri = `https://image.tmdb.org/t/p/original/${item.backdrop_path}`;
+
+  const handleRatingFromItem = useCallback((newRating: number) => {
+    setRating(item.id, newRating);
+    setTimeout(() => onRate(newRating, item), 0);
+  }, [item, onRate, setRating]);
+
+  useEffect(() => {
+    if (item.user_rating !== null && item.user_rating > 0) {
+      setRating(item.id, item.user_rating)
+    }
+  }, [item, item.user_rating, setRating])
+
+  return (
+    <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8' >
+      <Pressable onPress={() => handleIrParaDetalhes(item, currentRating ?? 0)}
+      >
+        <Image
+          source={{ uri }}
+          style={{ width: "100%", aspectRatio: 3 / 2, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+          cachePolicy="memory-disk"
+          recyclingKey={item.id}
+          contentFit="cover"
+          placeholder={{ thumbhash: blurhash }}
+          transition={{ duration: 1000, timing: 'ease-in' }}
+        />
+      </Pressable>
+
+      <View className='p-4 gap-2 bg-white/5'>
+        <Pressable onPress={() => handleIrParaDetalhes(item, currentRating ?? 0)}>
+          <Text className='text-white font-bold m-0'>{item.title}</Text>
+        </Pressable>
+
+        <Pressable
+          className='flex flex-row justify-between items-center gap-4'
+          onPress={() => handleIrParaDetalhes(item, currentRating ?? 0)}
+        >
+          <Text className='text-neutral-500'>{item.release_date.slice(0, 4)}</Text>
+
+          <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
+            <BadgeText>{item.is_movie ? "Filme" : "Série"}</BadgeText>
+          </Badge>
+        </Pressable>
+
+        <View className='flex flex-col gap-2 w-full justify-center items-center pt-4'>
+          <RatingLeaf id={item.id} onRate={handleRatingFromItem}></RatingLeaf>
+        </View>
+      </View>
+    </View>
+  );
+};
 
 const HeaderList = ({
   termo,
@@ -170,6 +284,8 @@ const HeaderList = ({
 
 const Pesquisa = () => {
 
+  const { user } = useUser()
+
   const [filterOpen, setFilterOpen] = useState(false);
   const [generosSelecionados, setGenerosSelecionados] = useState<string[]>([])
   const [tipoSelecionado, setTipoSelecionado] = useState<string>('')
@@ -186,6 +302,23 @@ const Pesquisa = () => {
 
   const toast = useToastVariant()
 
+  const opacity = useSharedValue(0);
+  const translateX = useSharedValue(-20);
+  useFocusEffect(
+    useCallback(() => {
+      opacity.value = withTiming(1, { duration: 300 })
+      translateX.value = withTiming(0, { duration: 600 })
+      return () => {
+        opacity.value = 0
+        translateX.value = -20
+      }
+    }, [opacity, translateX])
+  );
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateX: translateX.value }],
+  }));
   const adicionarGenero = (genero: string) => {
     if (generosSelecionados.length >= 3) {
       toast.show("Escolha até 3 gêneros.", "warning", 'top')
@@ -218,7 +351,6 @@ const Pesquisa = () => {
       filtros.push({
         value: generosJson[genero],
         field: FilterField.GENRE_NAME,
-        operator: FilterOperator.LIKE
       })
     })
 
@@ -226,25 +358,23 @@ const Pesquisa = () => {
       filtros.push({
         value: String(tipoSelecionado === 'Filme'),
         field: FilterField.IS_MOVIE,
-        operator: FilterOperator.EQ
       })
     }
 
     if (termoBuscaConfirmado.length >= 2) {
       filtros.push({
         value: termoBuscaConfirmado,
-        operator: FilterOperator.LIKE,
         field: FilterField.GENERIC,
       })
     }
-    console.log({ filtros })
 
     const body: BuscaRequest = {
       filters: filtros,
       limit,
       offset: pageParam,
       sort_by: sortBy,
-      sort_order: order
+      sort_order: order,
+      clerk_id: user!.id
     };
 
     const response = await protectedFetch('https://mymovie-nhhq.onrender.com/media/search', getToken, {
@@ -253,7 +383,7 @@ const Pesquisa = () => {
       body: JSON.stringify(body),
     });
 
-    const jsonResponse: ResponseMedia = await response.json();
+    const jsonResponse: ResponseMediaSearch = await response.json();
 
     if (!response.ok) throw new Error(JSON.stringify(jsonResponse));
     return {
@@ -327,25 +457,13 @@ const Pesquisa = () => {
     setOrder('asc')
   }
 
-
-  const setMedia = useMediaStore((state) => state.setMedia);
-  const setRatingStore = useRatingStore((state) => state.setRating);
-  const router = useRouter()
-
-  const handleIrParaDetalhes = (media: Media, rating: number) => {
-    setMedia(media);
-    setRatingStore(rating)
-
-    router.navigate("/(tabs)/detalhe");
-  };
-
   const labels = generos;
 
   console.log("data: ", data)
   console.log("status: ", fetchStatus)
 
   return (
-    <View className='flex flex-1 bg-black'>
+    <Animated.View className='flex flex-1 bg-black' style={animatedStyle}>
 
       <View className='flex flex-col border-b border-neutral-900 py-6 px-4'>
 
@@ -593,44 +711,7 @@ const Pesquisa = () => {
                 </View>
               </View>
             )}
-            renderItem={({ item }) => {
-              const uri = `https://image.tmdb.org/t/p/original/${item.backdrop_path}`;
-              return (
-                <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8'>
-                  <Pressable>
-                    <Image
-                      source={{ uri }}
-                      style={{ width: "100%", aspectRatio: 3 / 2, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
-                      cachePolicy="memory-disk"
-                      recyclingKey={item.id}
-                      contentFit="cover"
-                      placeholder={{ thumbhash: "J02$Hej[j[fQM{fQ" }}
-                      transition={{ duration: 1000, timing: 'ease-in' }}
-                    />
-                  </Pressable>
-
-                  <View className='p-4 gap-2 bg-white/5'>
-                    <Pressable >
-                      <Text className='text-white font-bold m-0'>{item.title}</Text>
-                    </Pressable>
-
-                    <Pressable
-                      className='flex flex-row justify-between items-center gap-4'
-                      onPress={() => handleIrParaDetalhes(item, 0)}
-                    >
-                      <Text className='text-neutral-500'>{item.release_date.slice(0, 4)}</Text>
-
-                      <Badge size="lg" variant="solid" action="muted" className='rounded-full px-4 mt-1 w-fit'>
-                        <BadgeText>{item.is_movie ? "Filme" : "Série"}</BadgeText>
-                      </Badge>
-                    </Pressable>
-
-                    
-                  </View>
-                </View>
-              )
-
-            }}
+            renderItem={({ item }) => <ImageItem item={item} />}
             onEndReached={() => {
               if (hasNextPage && !isFetchingNextPage) {
                 fetchNextPage();
@@ -638,16 +719,19 @@ const Pesquisa = () => {
             }}
             ListFooterComponent={
               isFetchingNextPage ? (
-                <View className="py-4 items-center">
-                  <Text className="text-neutral-400">Carregando mais...</Text>
-                </View>
+                <ActivityIndicator
+                  size="small"
+                  className='text-primary-light'
+                  style={{ marginBottom: 20 }}
+                />
+
               ) : null
             }
           />
 
         </View>
       }
-    </View >
+    </Animated.View >
   )
 }
 

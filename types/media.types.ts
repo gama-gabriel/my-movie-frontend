@@ -11,8 +11,16 @@ export interface Media {
   genres: string[];
 }
 
+export interface MediaSearch extends Media {
+  user_rating: number | null
+}
+
 export interface ResponseMedia {
   media: Media[];
+}
+
+export interface ResponseMediaSearch {
+  media: MediaSearch[];
 }
 
 export interface CastMember {

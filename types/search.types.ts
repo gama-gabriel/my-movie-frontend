@@ -8,20 +8,8 @@ export enum FilterField {
   PEOPLE_CHARACTER = "people.character",
 }
 
-export enum FilterOperator {
-  EQ = "eq",
-  GT = "gt",
-  GTE = "gte",
-  LT = "lt",
-  LTE = "lte",
-  NEQ = "neq",
-  LIKE = "like",
-  IN = "in",
-}
-
 export interface FilterCondition {
   field: FilterField;
-  operator: FilterOperator;
   value: string | boolean;
 }
 
@@ -31,4 +19,5 @@ export interface BuscaRequest {
   sort_order?: "asc" | "desc";
   limit: number;
   offset: number;
+  clerk_id: string;
 }
