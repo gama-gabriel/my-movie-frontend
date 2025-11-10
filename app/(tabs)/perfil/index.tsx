@@ -13,7 +13,7 @@ import { AnimatedButton } from "../../components/AnimatedButton";
 import { danger, neutral100, neutral900 } from "@/constants/constants";
 import { KeyRoundIcon, ListIcon, PencilIcon, Trash2Icon, UserRound } from "lucide-react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import { useMediaRatingsStore } from "@/hooks/useMediaStore";
+import { useMediaBookmarkStore, useMediaRatingsStore } from "@/hooks/useMediaStore";
 import { Icon } from "@/components/ui/icon";
 import Logo from '@/assets/logo.svg'
 
@@ -35,7 +35,8 @@ export default function Perfil() {
   const handleClose = () => setMostrarDialogConfirmacao(false);
   const handleCloseExclusao = () => setMostrarDialogExclusao(false);
 
-  const clearStore = useMediaRatingsStore(s => s.clearAll);
+  const clearRatingsStore = useMediaRatingsStore(s => s.clearAll);
+  const clearBookmarkStore = useMediaBookmarkStore(s => s.clearAll);
 
   const openDialogExclusao = () => {
     setMostrarDialogConfirmacao(false);
@@ -90,7 +91,8 @@ export default function Perfil() {
     mutationFn: excluirUsuarioFn,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["images"] });
-      clearStore()
+      clearRatingsStore()
+      clearBookmarkStore()
     },
   });
 
@@ -311,7 +313,7 @@ export default function Perfil() {
       </SignedIn >
 
       <SignedOut>
-        <Redirect href='/(auth)/home'></Redirect>
+        <Redirect href='/(auth)/login'></Redirect>
       </SignedOut>
     </>
   )

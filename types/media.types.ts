@@ -9,10 +9,11 @@ export interface Media {
   similarity_score: number;
   cast: CastMember[]
   genres: string[];
+  bookmarked?: boolean
 }
 
 export interface MediaSearch extends Media {
-  user_rating: number | null
+  user_rating: number | null;
 }
 
 export interface ResponseMedia {

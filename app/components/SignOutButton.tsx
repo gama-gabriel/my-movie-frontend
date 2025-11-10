@@ -7,14 +7,15 @@ import { Text } from 'react-native'
 import { AnimatedButton } from './AnimatedButton'
 import {  neutral100, neutral900 } from '@/constants/constants'
 import { LogOutIcon } from 'lucide-react-native'
-import { useMediaRatingsStore } from '@/hooks/useMediaStore'
+import { useMediaBookmarkStore, useMediaRatingsStore } from '@/hooks/useMediaStore'
 
 const SignOutButton = () => {
   // Use `useClerk()` to access the `signOut()` function
   const { signOut } = useClerk()
   const router = useRouter()
 
-  const clearStore = useMediaRatingsStore(s => s.clearAll);
+  const clearRatingsStore = useMediaRatingsStore(s => s.clearAll);
+  const clearBookmarkStore = useMediaBookmarkStore(s => s.clearAll);
 
   const [mostrarDialogConfirmacao, setMostrarDialogConfirmacao] = React.useState(false);
 
@@ -22,7 +23,8 @@ const SignOutButton = () => {
 
   const handleSignOut = async () => {
     try {
-      clearStore()
+      clearRatingsStore()
+      clearBookmarkStore()
       await signOut()
       router.replace('/(auth)/login')
       // Redirect to your desired page

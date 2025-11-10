@@ -1,7 +1,7 @@
 import { Tabs  } from 'expo-router';
 import { SafeAreaView  } from 'react-native-safe-area-context';
 import { Icon } from '@/components/ui/icon';
-import { Home, Sparkles, UserRound, SearchIcon } from 'lucide-react-native';
+import { Home, UserRound, SearchIcon, BookmarkIcon } from 'lucide-react-native';
 import { RatingDrawer } from '@/components/RatingDrawer';
 import { RatingDrawerProvider } from '@/contexts/RatingDrawerContext';
 import { neutral900, primaryLight } from '@/constants/constants';
@@ -68,21 +68,14 @@ export default function Layout() {
           />
 
           <Tabs.Screen
-            name="lancamentos"
+            name="lista"
             options={{
-              title: 'Lançamentos',
-              animation: 'none',
-              transitionSpec: {
-                animation: 'timing',
-                config: {
-                  duration: 200,
-                },
-              },
+              title: 'Minha lista',
               sceneStyle: { backgroundColor: 'transparent' },
               tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
               tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
               tabBarIcon: ({ color }) => (
-                <Icon as={Sparkles} style={{ width: 20, height: 20, color: color }} />
+                <Icon as={BookmarkIcon} style={{ width: 20, height: 20, color: color }} />
               ),
             }}
           />
@@ -92,13 +85,6 @@ export default function Layout() {
             options={{
               title: 'Detalhe',
               href: null,
-              animation: 'none',
-              transitionSpec: {
-                animation: 'timing',
-                config: {
-                  duration: 200,
-                },
-              },
               sceneStyle: { backgroundColor: 'transparent' },
               tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
             }}
@@ -109,13 +95,6 @@ export default function Layout() {
             options={{
               title: 'Perfil',
               href: null,
-              animation: 'none',
-              transitionSpec: {
-                animation: 'timing',
-                config: {
-                  duration: 200,
-                },
-              },
               sceneStyle: { backgroundColor: 'transparent' },
               tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
               tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },

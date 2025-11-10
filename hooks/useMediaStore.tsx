@@ -25,11 +25,22 @@ export const useRatingStore = create<RatingStore>((set) => ({
 
 interface RatingsStore {
   ratings: Map<string, number>;
-  version: number; // bumps on each mutation
+  version: number;
   setRating: (mediaId: string, rating: number) => void;
   getRating: (mediaId: string) => number | undefined;
   clearRating: (mediaId: string) => void;
   clearAll: () => void;
+}
+
+interface BookmarkStore {
+  bookmarks: Map<string, boolean>;
+  version: number;
+  getVersion: () => number;
+  setBookmark: (mediaId: string, bookmark: boolean) => void;
+  getBookmark: (mediaId: string) => boolean | undefined;
+  clearBookmark: (mediaId: string) => void;
+  clearAll: () => void;
+  incrementVersion: () => void;
 }
 
 export const useMediaRatingsStore = create<RatingsStore>((set, get) => ({
@@ -62,4 +73,39 @@ export const useMediaRatingsStore = create<RatingsStore>((set, get) => ({
       state.ratings.clear();
       return { version: state.version + 1 };
     }),
+}));
+
+export const useMediaBookmarkStore = create<BookmarkStore>((set, get) => ({
+  bookmarks: new Map(),
+  version: 0,
+  getVersion: () => get().version,
+
+  setBookmark: (id, bookmark) =>
+    set((state) => {
+      if (state.bookmarks.get(id) === bookmark) return {};
+
+      const newBookmarks = new Map(state.bookmarks);
+      newBookmarks.set(id, bookmark);
+
+      return {
+        bookmarks: newBookmarks,
+        version: state.version
+      };
+    }),
+
+  getBookmark: (mediaId) => get().bookmarks.get(mediaId),
+
+  clearBookmark: (mediaId) =>
+    set((state) => {
+      if (!state.bookmarks.has(mediaId)) return {};
+      const newBookmarks = new Map(state.bookmarks);
+      newBookmarks.delete(mediaId);
+      return { bookmarks: newBookmarks, version: state.version + 1 };
+    }),
+
+  clearAll: () =>
+    set(() => ({ bookmarks: new Map(), version: 0 })),
+
+  incrementVersion: () =>
+    set((state) => ({ version: state.version + 1 })),
 }));

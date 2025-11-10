@@ -1,18 +1,22 @@
-import { useMediaRatingsStore, useMediaStore } from "@/hooks/useMediaStore";
-import { View, Text, BackHandler } from "react-native";
+import { useMediaBookmarkStore, useMediaRatingsStore, useMediaStore } from "@/hooks/useMediaStore";
+import { View, Text, BackHandler, Pressable } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Badge, BadgeText } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
-import { CalendarIcon } from "lucide-react-native";
+import { BookmarkIcon, CalendarIcon } from "lucide-react-native";
 import { FlashList } from "@shopify/flash-list";
-import { useRatingDrawer } from "@/contexts/RatingDrawerContext";
 import { StarRating } from "@/components/RatingDrawer";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { CastMember } from "@/types/media.types";
 import { Skeleton } from "moti/skeleton";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { AnimatedButton } from "../components/AnimatedButton";
+import { neutral900, primaryLight } from "@/constants/constants";
+import { ButtonIcon, ButtonText } from "@/components/ui/button";
+import { useRating } from "@/hooks/useRating";
+import { useBookmark } from "@/hooks/useBookmark";
 
 export default function Detalhe() {
 
@@ -22,7 +26,11 @@ export default function Detalhe() {
 
   const setCurrentRating = useMediaRatingsStore((s) => s.setRating);
 
-  const { onRate } = useRatingDrawer();
+  const setBookmark = useMediaBookmarkStore((s) => s.setBookmark);
+
+  const { onRate } = useRating();
+
+  const { onBookmark } = useBookmark();
 
   const params = useLocalSearchParams();
   const router = useRouter()
@@ -48,10 +56,19 @@ export default function Detalhe() {
   const handleRatingChange = useCallback(
     (newRating: number) => {
       if (!media) return;
-      onRate(newRating, media);
+      onRate(newRating, media.id);
       setCurrentRating(media.id, newRating);
     },
     [media, onRate, setCurrentRating]
+  );
+
+  const handleBookmarkChange = useCallback(
+    (adicionar: boolean) => {
+      if (!media) return;
+      onBookmark(adicionar, media.id);
+      setBookmark(media.id, adicionar);
+    },
+    [media, onBookmark, setBookmark]
   );
 
   const formatarData = (dataString: string | undefined, tipo: string | undefined) => {
@@ -102,20 +119,88 @@ export default function Detalhe() {
     const RatingSection = React.memo(({ media, handleRatingChange }: any) => {
       const rating = useMediaRatingsStore(
         (s) => s.ratings.get(media.id) ?? 0,
-        // you can optionally add shallow compare if you want; not required here
       );
 
+      const bookmark = useMediaBookmarkStore(
+        (s) => s.bookmarks.get(media.id) ?? 0,
+      );
+
+      const [visto, setVisto] = useState<boolean | null>(null)
+
+      useEffect(() => {
+        if (rating > 0) {
+          setVisto(true)
+        }
+      }, [rating, setVisto])
+
       return (
-        <View className="flex flex-col gap-2 w-full justify-center items-center">
-          <Text className="text-white text-lg">Toque em uma estrela para avaliar</Text>
-          <StarRating
-            maxStars={5}
-            size={48}
-            rating={rating}
-            disabled={rating > 0}
-            onRatingChange={handleRatingChange}
-          />
-        </View>
+        <>
+          {visto === null &&
+            <Animated.View
+              entering={FadeIn.duration(200).springify()}
+              exiting={FadeOut.duration(200).springify()}
+              className='flex flex-col gap-6 w-full justify-center items-center'>
+              {/* <Text className="text-white text-lg">Você já assistiu?</Text> */}
+              <View className='w-full flex flex-row gap-2 justify-center'>
+                <View className='flex flex-row gap-2 flex-grow justify-center'>
+                  <AnimatedButton
+                    activeColor={neutral900}
+                    inactiveColor='transparent'
+                    variant='solid'
+                    size='xl'
+                    onPress={() => setVisto(true)}
+                    className='flex-grow border border-primary-light' >
+                    <ButtonText className='text-white'>Já assisti</ButtonText>
+                  </AnimatedButton>
+
+                  {/* <AnimatedButton
+                activeColor={neutral900}
+                inactiveColor='transparent'
+                variant='solid'
+                size='xl'
+                onPress={() => setVisto(false)}
+                className='flex-grow border border-neutral-500' >
+                <ButtonText className='text-white'>Não assisti</ButtonText>
+              </AnimatedButton> */}
+                </View>
+
+                <AnimatedButton
+                  inactiveColor='transparent'
+                  activeColor={neutral900}
+                  variant='solid'
+                  size='xl'
+                  onPress={() => handleBookmarkChange(!bookmark)}
+                  className='self-center px-4' >
+                  <ButtonIcon as={BookmarkIcon} size={24} fill={bookmark ? primaryLight : ''} className='text-primary-light'></ButtonIcon>
+                </AnimatedButton>
+              </View>
+
+
+            </Animated.View>
+          }
+
+          {visto &&
+            <Animated.View
+              entering={FadeIn.duration(200).springify()}
+              exiting={FadeOut.duration(200).springify()}
+              className='justify-center flex flex-col items-center'
+            >
+              <Text className="text-white text-lg pb-2">Toque em uma estrela para avaliar</Text>
+              <StarRating
+                maxStars={5}
+                size={48}
+                rating={rating}
+                onRatingChange={handleRatingChange}
+              />
+              <Pressable
+                onPress={() => setVisto(null)}
+                className='pt-4'>
+                <Text className='text-neutral-100'>Voltar</Text>
+              </Pressable>
+            </Animated.View>
+
+          }
+        </>
       );
     });
     RatingSection.displayName = "RatingSection";
