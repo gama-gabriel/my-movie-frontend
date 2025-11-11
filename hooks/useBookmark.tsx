@@ -2,6 +2,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { useMutation } from "@tanstack/react-query";
 import { useToastVariant } from "./useToastVariant";
 import { useMediaBookmarkStore } from "./useMediaStore";
+import { useCallback } from "react";
 
 export const useBookmark = () => {
 
@@ -12,7 +13,7 @@ export const useBookmark = () => {
   const incrementVersion = useMediaBookmarkStore((s) => s.incrementVersion);
 
   const bookmarkMutation = useMutation({
-    mutationFn: async ({ mediaId }: { mediaId: string }) => {
+    mutationFn: async ({ mediaId, mudarVersao }: { mediaId: string, mudarVersao: boolean }) => {
       const response = await fetch('https://mymovie-nhhq.onrender.com/media/watch-later', {
         method: 'POST',
         headers: {
@@ -33,6 +34,9 @@ export const useBookmark = () => {
       return response.json();
     },
     onSuccess: () => {
+      // if (mudarVersao) {
+      //   incrementVersion()
+      // }
       toast.show("Item adicionado a lista com sucesso!", "success")
     },
     onError: () => {
@@ -60,6 +64,7 @@ export const useBookmark = () => {
       return response.json();
     },
     onSuccess: () => {
+      // incrementVersion()
       toast.show("Item removido da lista com sucesso!", "success")
     },
     onError: () => {
@@ -67,38 +72,31 @@ export const useBookmark = () => {
     }
   });
 
-  const onBookmark = async (adicionar: boolean, media_id: string, mudarVersao: boolean = true) => {
+  const onBookmark = useCallback(async (adicionar: boolean, media_id: string, mudarVersao: boolean = true) => {
     if (media_id) {
       if (adicionar) {
-        try {
-          await bookmarkMutation.mutateAsync({
+          bookmarkMutation.mutateAsync({
             mediaId: media_id,
+            mudarVersao
           });
           console.log(`Successfully bookmarked ${media_id}`);
 
-          if (mudarVersao) {
-            incrementVersion()
-          }
-        } catch (error) {
-          console.error('Error bookmarking media:', error);
-        }
+          // if (mudarVersao) {
+          //   incrementVersion()
+          // }
       } else {
-        try {
-          await removeBookmarkMutation.mutateAsync({
+          removeBookmarkMutation.mutateAsync({
             mediaId: media_id,
           });
 
           console.log(`Successfully removed bookmark from ${media_id}`);
 
-          if (mudarVersao) {
-            incrementVersion()
-          }
-        } catch (error) {
-          console.error('Error removing bookmark from media:', error);
-        }
+          // if (mudarVersao) {
+          //   incrementVersion()
+          // }
       }
     }
-  };
+  }, [bookmarkMutation, removeBookmarkMutation, ]);
 
   return { onBookmark }
 }

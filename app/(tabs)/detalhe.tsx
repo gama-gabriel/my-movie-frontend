@@ -1,10 +1,10 @@
-import { useMediaBookmarkStore, useMediaRatingsStore, useMediaStore } from "@/hooks/useMediaStore";
-import { View, Text, BackHandler, Pressable } from "react-native";
+import { useBookmarkFor, useMediaBookmarkStore, useMediaRatingsStore, useMediaStore, useRatingFor } from "@/hooks/useMediaStore";
+import { View, Text, BackHandler } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Badge, BadgeText } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
-import { BookmarkIcon, CalendarIcon } from "lucide-react-native";
+import { BookmarkIcon, CalendarIcon, EraserIcon } from "lucide-react-native";
 import { FlashList } from "@shopify/flash-list";
 import { StarRating } from "@/components/RatingDrawer";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -13,7 +13,7 @@ import { Skeleton } from "moti/skeleton";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { AnimatedButton } from "../components/AnimatedButton";
-import { neutral900, primaryLight } from "@/constants/constants";
+import { danger, neutral900, primaryLight } from "@/constants/constants";
 import { ButtonIcon, ButtonText } from "@/components/ui/button";
 import { useRating } from "@/hooks/useRating";
 import { useBookmark } from "@/hooks/useBookmark";
@@ -24,11 +24,12 @@ export default function Detalhe() {
 
   const clearMedia = useMediaStore(s => s.clearMedia);
 
-  const setCurrentRating = useMediaRatingsStore((s) => s.setRating);
+  const setRating = useMediaRatingsStore((s) => s.setRating);
+  const clearRating = useMediaRatingsStore((s) => s.clearRating);
 
   const setBookmark = useMediaBookmarkStore((s) => s.setBookmark);
 
-  const { onRate } = useRating();
+  const { onRate, onDeleteRating } = useRating();
 
   const { onBookmark } = useBookmark();
 
@@ -53,14 +54,6 @@ export default function Detalhe() {
     return () => backHandler.remove();
   }, [router, params]);
 
-  const handleRatingChange = useCallback(
-    (newRating: number) => {
-      if (!media) return;
-      onRate(newRating, media.id);
-      setCurrentRating(media.id, newRating);
-    },
-    [media, onRate, setCurrentRating]
-  );
 
   const handleBookmarkChange = useCallback(
     (adicionar: boolean) => {
@@ -69,6 +62,21 @@ export default function Detalhe() {
       setBookmark(media.id, adicionar);
     },
     [media, onBookmark, setBookmark]
+  );
+
+  const handleRatingChange = useCallback(
+    (id: string, newRating: number) => {
+      setRating(id, newRating);
+      onRate(newRating, id);
+    },
+    [onRate, setRating]
+  );
+  const handleDeleteRating = useCallback(
+    (mediaId: string) => {
+      clearRating(mediaId);
+      onDeleteRating(mediaId);
+    },
+    [clearRating, onDeleteRating]
   );
 
   const formatarData = (dataString: string | undefined, tipo: string | undefined) => {
@@ -117,30 +125,27 @@ export default function Detalhe() {
   const HeaderComponent = React.memo(({ media, handleRatingChange }: any) => {
 
     const RatingSection = React.memo(({ media, handleRatingChange }: any) => {
-      const rating = useMediaRatingsStore(
-        (s) => s.ratings.get(media.id) ?? 0,
-      );
-
-      const bookmark = useMediaBookmarkStore(
-        (s) => s.bookmarks.get(media.id) ?? 0,
-      );
+      const rating = useRatingFor(media.id);
+      const bookmark = useBookmarkFor(media.id);
 
       const [visto, setVisto] = useState<boolean | null>(null)
 
-      useEffect(() => {
-        if (rating > 0) {
-          setVisto(true)
-        }
-      }, [rating, setVisto])
+      const rate = useCallback(
+        (newRating: number) => {
+          handleRatingChange(media.id, newRating);
+          setVisto(false)
+        },
+        [media.id, handleRatingChange]
+      );
 
       return (
         <>
-          {visto === null &&
+          {!visto && rating === undefined && (
             <Animated.View
               entering={FadeIn.duration(200).springify()}
               exiting={FadeOut.duration(200).springify()}
-              className='flex flex-col gap-6 w-full justify-center items-center'>
-              {/* <Text className="text-white text-lg">Você já assistiu?</Text> */}
+              className='flex flex-col gap-4 w-full justify-center items-center'
+            >
               <View className='w-full flex flex-row gap-2 justify-center'>
                 <View className='flex flex-row gap-2 flex-grow justify-center'>
                   <AnimatedButton
@@ -149,19 +154,10 @@ export default function Detalhe() {
                     variant='solid'
                     size='xl'
                     onPress={() => setVisto(true)}
-                    className='flex-grow border border-primary-light' >
+                    className='flex-grow border border-primary-light'
+                  >
                     <ButtonText className='text-white'>Já assisti</ButtonText>
                   </AnimatedButton>
-
-                  {/* <AnimatedButton
-                activeColor={neutral900}
-                inactiveColor='transparent'
-                variant='solid'
-                size='xl'
-                onPress={() => setVisto(false)}
-                className='flex-grow border border-neutral-500' >
-                <ButtonText className='text-white'>Não assisti</ButtonText>
-              </AnimatedButton> */}
                 </View>
 
                 <AnimatedButton
@@ -170,16 +166,20 @@ export default function Detalhe() {
                   variant='solid'
                   size='xl'
                   onPress={() => handleBookmarkChange(!bookmark)}
-                  className='self-center px-4' >
-                  <ButtonIcon as={BookmarkIcon} size={24} fill={bookmark ? primaryLight : ''} className='text-primary-light'></ButtonIcon>
+                  className='self-center px-4'
+                >
+                  <ButtonIcon
+                    as={BookmarkIcon}
+                    size={24}
+                    fill={bookmark ? primaryLight : ''}
+                    className='text-primary-light'
+                  />
                 </AnimatedButton>
               </View>
-
-
             </Animated.View>
-          }
+          )}
 
-          {visto &&
+          {visto && (
             <Animated.View
               entering={FadeIn.duration(200).springify()}
               exiting={FadeOut.duration(200).springify()}
@@ -190,16 +190,110 @@ export default function Detalhe() {
                 maxStars={5}
                 size={48}
                 rating={rating}
-                onRatingChange={handleRatingChange}
+                onRatingChange={rate}
               />
-              <Pressable
-                onPress={() => setVisto(null)}
-                className='pt-4'>
-                <Text className='text-neutral-100'>Voltar</Text>
-              </Pressable>
-            </Animated.View>
 
-          }
+              {rating === undefined && (
+                <Animated.View
+                  entering={FadeIn.duration(200).springify()}
+                  exiting={FadeOut.duration(200).springify()}
+                  className='flex flex-row w-full gap-2 pt-8'
+                >
+                  <View className='flex-1'>
+                    <AnimatedButton
+                      inactiveColor='transparent'
+                      activeColor={neutral900}
+                      variant='solid'
+                      size='md'
+                      onPress={() => setVisto(false)}
+                      className='border border-neutral-700'
+                    >
+                      <ButtonText className='text-white'>Voltar</ButtonText>
+                    </AnimatedButton>
+                  </View>
+
+                  <View className='flex-1'>
+                    <AnimatedButton
+                      inactiveColor='transparent'
+                      activeColor={neutral900}
+                      variant='solid'
+                      size='md'
+                      onPress={() => handleBookmarkChange(!bookmark)}
+                      className='border border-neutral-700'
+                    >
+                      <ButtonIcon as={BookmarkIcon} fill={bookmark ? primaryLight : ''} className='text-primary-light' />
+                      <ButtonText className='text-white pl-2'>{bookmark ? 'Salvo' : 'Salvar'}</ButtonText>
+                    </AnimatedButton>
+                  </View>
+                </Animated.View>
+              )}
+            </Animated.View>
+          )}
+
+          {rating! > 0 && (
+            <Animated.View
+              entering={FadeIn.duration(200).springify()}
+              exiting={FadeOut.duration(200).springify()}
+              className='justify-center flex flex-col items-center'
+            >
+              <Text className="text-white text-lg pb-2">Toque em uma estrela para avaliar</Text>
+              <StarRating
+                maxStars={5}
+                size={48}
+                rating={rating}
+                onRatingChange={rate}
+              />
+
+              <Animated.View
+                entering={FadeIn.duration(200).springify()}
+                exiting={FadeOut.duration(200).springify()}
+                className='flex flex-row w-full gap-4 pt-8'
+              >
+                <AnimatedButton
+                  inactiveColor={`${danger}40`}
+                  activeColor={`${danger}70`}
+                  variant='solid'
+                  size='md'
+                  onPress={() => handleDeleteRating(media.id)}
+                  className='border border-danger/70 flex-1'
+                >
+                  <ButtonIcon as={EraserIcon} className='text-neutral-500' />
+                  <ButtonText className='text-white pl-2'>Remover avaliação</ButtonText>
+                </AnimatedButton>
+
+                <AnimatedButton
+                  inactiveColor='transparent'
+                  activeColor={neutral900}
+                  variant='solid'
+                  size='md'
+                  onPress={() => handleBookmarkChange(!bookmark)}
+                  className='border border-neutral-700'
+                >
+                  <ButtonIcon as={BookmarkIcon} fill={bookmark ? primaryLight : ''} className='text-primary-light' />
+                </AnimatedButton>
+              </Animated.View>
+            </Animated.View>
+          )}
+
+          {rating === 0 && (
+            <Animated.View
+              entering={FadeIn.duration(200).springify()}
+              exiting={FadeOut.duration(200).springify()}
+              className='flex flex-col w-full gap-4'
+            >
+              <Text className="text-white text-center">Esse item não será recomendado para você</Text>
+              <AnimatedButton
+                inactiveColor='transparent'
+                activeColor={neutral900}
+                variant='solid'
+                size='md'
+                onPress={() => handleDeleteRating(media.id)}
+                className='border border-neutral-700'
+              >
+                <ButtonText className='text-white pl-2'>Desfazer</ButtonText>
+              </AnimatedButton>
+            </Animated.View>
+          )}
         </>
       );
     });

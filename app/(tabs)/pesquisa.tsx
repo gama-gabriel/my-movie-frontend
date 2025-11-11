@@ -4,8 +4,8 @@ import { View, Text, Pressable, TextInput, TextInputProps, ActivityIndicator } f
 import { AnimatedButton } from '../components/AnimatedButton';
 import { danger, generos, generosJson, neutral700, neutral900, primary, primaryDark, primaryLight } from '@/constants/constants';
 import { ButtonIcon, ButtonSpinner, ButtonText } from '@/components/ui/button';
-import { ArrowDown01Icon, ArrowDown10Icon, ArrowDownUpIcon, CircleXIcon, SearchIcon, SlidersHorizontalIcon } from 'lucide-react-native';
-import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withTiming, } from 'react-native-reanimated';
+import { ArrowDown01Icon, ArrowDown10Icon, ArrowDownUpIcon, BookmarkIcon, CircleXIcon, EraserIcon, FrownIcon, SearchIcon, SlidersHorizontalIcon } from 'lucide-react-native';
+import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming, } from 'react-native-reanimated';
 import { ScrollView } from 'react-native-gesture-handler';
 import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 import { BuscaRequest, FilterCondition, FilterField } from '@/types/search.types';
@@ -14,16 +14,17 @@ import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useToastVariant } from '@/hooks/useToastVariant';
 import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
-import { Media, MediaSearch, ResponseMediaSearch } from '@/types/media.types';
+import { MediaSearch, ResponseMediaSearch } from '@/types/media.types';
 import { Skeleton } from 'moti/skeleton';
 import { Badge, BadgeText } from '@/components/ui/badge';
 import { CloseIcon, Icon } from '@/components/ui/icon';
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerCloseButton, DrawerContent, DrawerHeader } from '@/components/ui/drawer';
 import { Select, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput, SelectItem, SelectPortal, SelectTrigger } from '@/components/ui/select';
-import { useMediaRatingsStore, useMediaStore, useRatingStore } from '@/hooks/useMediaStore';
+import { useBookmarkFor, useMediaBookmarkStore, useMediaRatingsStore, useMediaStore, useRatingFor, useRatingStore } from '@/hooks/useMediaStore';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { StarRating } from '@/components/RatingDrawer';
-import { useRatingDrawer } from '@/contexts/RatingDrawerContext';
+import { useBookmark } from '@/hooks/useBookmark';
+import { useRating } from '@/hooks/useRating';
 
 interface Pagina {
   media: MediaSearch[];
@@ -75,80 +76,280 @@ export function SkeletonFlashList() {
 const RatingLeaf = memo(function RatingLeaf({
   id,
   onRate,
+  onDeleteRating,
+  onBookmark,
 }: {
   id: string;
-  onRate: (rating: number, item: Media) => void;
+  onRate: (rating: number, media_id: string) => void;
+  onDeleteRating: (media_id: string) => void;
+  onBookmark: (adicionar: boolean, media_id: string) => void;
 }) {
-  const rating = useMediaRatingsStore((s) => s.ratings.get(id) ?? 0);
+  // subscribe only to the single-id primitive values
+  const rating = useRatingFor(id); // returns number | 0 default
+  const bookmark = useBookmarkFor(id); // returns boolean | false default
 
+  // get imperative setters once (stable references)
   const setRating = useMediaRatingsStore((s) => s.setRating);
+  const clearRating = useMediaRatingsStore((s) => s.clearRating);
+  const setBookmark = useMediaBookmarkStore((s) => s.setBookmark);
+
+  const [visto, setVisto] = useState<boolean | null>(null);
 
   const handleRatingChange = useCallback(
     (newRating: number) => {
       setRating(id, newRating);
-      setTimeout(() => {
-        onRate?.(newRating, { id } as any);
-      }, 0);
+      onRate(newRating, id);
+      setVisto(null)
     },
     [id, onRate, setRating]
   );
 
+  const handleDeleteRating = useCallback(
+    (mediaId: string) => {
+      clearRating(mediaId);
+      onDeleteRating(mediaId);
+    },
+    [clearRating, onDeleteRating]
+  );
+
+  const handleBookmarkChange = useCallback(
+    (newBookmark: boolean) => {
+      setBookmark(id, newBookmark);
+      onBookmark(newBookmark, id);
+    },
+    [id, onBookmark, setBookmark]
+  );
+
   return (
     <>
-      <Text className="text-white text-lg">Toque em uma estrela para avaliar</Text>
-      <StarRating
-        maxStars={5}
-        size={48}
-        rating={rating}
-        disabled={!!rating}
-        onRatingChange={handleRatingChange}
-      />
+      {!visto &&
+        rating === undefined &&
+        <Animated.View
+          entering={FadeIn.duration(200).springify()}
+          exiting={FadeOut.duration(200).springify()}
+          className='flex flex-col gap-4 w-full justify-center items-center'
+        >
+          <View className='w-full flex flex-row gap-2 justify-center'>
+            <View className='flex flex-row gap-2 flex-grow justify-center'>
+              <AnimatedButton
+                activeColor={neutral900}
+                inactiveColor='transparent'
+                variant='solid'
+                size='xl'
+                onPress={() => setVisto(true)}
+                className='flex-grow border border-primary-light'
+              >
+                <ButtonText className='text-white'>Já assisti</ButtonText>
+              </AnimatedButton>
+            </View>
+
+            <AnimatedButton
+              inactiveColor='transparent'
+              activeColor={neutral900}
+              variant='solid'
+              size='xl'
+              onPress={() => handleBookmarkChange(!bookmark)}
+              className='self-center px-4'
+            >
+              <ButtonIcon
+                as={BookmarkIcon}
+                size={24}
+                fill={bookmark ? primaryLight : ''}
+                className='text-primary-light'
+              />
+            </AnimatedButton>
+          </View>
+
+          <View className='flex flex-row w-full justify-center'>
+            <AnimatedButton
+              inactiveColor='transparent'
+              activeColor={neutral900}
+              variant='solid'
+              size='md'
+              onPress={() => handleRatingChange(0)}
+            >
+              <ButtonIcon as={FrownIcon} className='text-danger/70' />
+              <ButtonText className='text-white pl-2'>Não tenho interesse</ButtonText>
+            </AnimatedButton>
+          </View>
+        </Animated.View>
+      }
+
+      {visto &&
+        <Animated.View
+          entering={FadeIn.duration(200).springify()}
+          exiting={FadeOut.duration(200).springify()}
+          className='justify-center flex flex-col items-center'
+        >
+          <Text className="text-white text-lg pb-2">Toque em uma estrela para avaliar</Text>
+          <StarRating
+            maxStars={5}
+            size={48}
+            rating={rating}
+            onRatingChange={handleRatingChange}
+          />
+
+          {rating === undefined &&
+            <Animated.View
+              entering={FadeIn.duration(200).springify()}
+              exiting={FadeOut.duration(200).springify()}
+              className='flex flex-row w-full gap-2 pt-8'
+            >
+              <View className='flex-1'>
+                <AnimatedButton
+                  inactiveColor='transparent'
+                  activeColor={neutral900}
+                  variant='solid'
+                  size='md'
+                  onPress={() => setVisto(false)}
+                  className='border border-neutral-700'
+                >
+                  <ButtonText className='text-white'>Voltar</ButtonText>
+                </AnimatedButton>
+              </View>
+
+              <View className='flex-1'>
+                <AnimatedButton
+                  inactiveColor='transparent'
+                  activeColor={neutral900}
+                  variant='solid'
+                  size='md'
+                  onPress={() => handleBookmarkChange(!bookmark)}
+                  className='border border-neutral-700'
+                >
+                  <ButtonIcon as={BookmarkIcon} fill={bookmark ? primaryLight : ''} className='text-primary-light' />
+                  <ButtonText className='text-white pl-2'>{bookmark ? 'Salvo' : 'Salvar'}</ButtonText>
+                </AnimatedButton>
+              </View>
+            </Animated.View>
+          }
+
+        </Animated.View>
+      }
+
+      {rating! > 0 &&
+        <Animated.View
+          entering={FadeIn.duration(200).springify()}
+          exiting={FadeOut.duration(200).springify()}
+          className='justify-center flex flex-col items-center'
+        >
+          <Text className="text-white text-lg pb-2">Toque em uma estrela para avaliar</Text>
+          <StarRating
+            maxStars={5}
+            size={48}
+            rating={rating}
+            onRatingChange={handleRatingChange}
+          />
+
+          <Animated.View
+            entering={FadeIn.duration(200).springify()}
+            exiting={FadeOut.duration(200).springify()}
+            className='flex flex-row w-full gap-4 pt-8'
+          >
+            <AnimatedButton
+              inactiveColor={`${danger}40`}
+              activeColor={`${danger}70`}
+              variant='solid'
+              size='md'
+              onPress={() => handleDeleteRating(id)}
+              className='border border-danger/70 flex-1'
+            >
+              <ButtonIcon as={EraserIcon} className='text-neutral-500' />
+              <ButtonText className='text-white pl-2'>Remover avaliação</ButtonText>
+            </AnimatedButton>
+
+            <AnimatedButton
+              inactiveColor='transparent'
+              activeColor={neutral900}
+              variant='solid'
+              size='md'
+              onPress={() => handleBookmarkChange(!bookmark)}
+              className='border border-neutral-700'
+            >
+              <ButtonIcon as={BookmarkIcon} fill={bookmark ? primaryLight : ''} className='text-primary-light' />
+            </AnimatedButton>
+          </Animated.View>
+
+
+        </Animated.View>
+
+      }
+
+      {rating === 0 &&
+        <Animated.View
+          entering={FadeIn.duration(200).springify()}
+          exiting={FadeOut.duration(200).springify()}
+          className='flex flex-col w-full gap-4'
+        >
+          <Text className="text-white text-center">Esse item não será recomendado novamente</Text>
+          <AnimatedButton
+            inactiveColor='transparent'
+            activeColor={neutral900}
+            variant='solid'
+            size='md'
+            onPress={() => handleDeleteRating(id)}
+            className='flex-1 border border-neutral-700'
+          >
+            <ButtonText className='text-white pl-2'>Desfazer</ButtonText>
+          </AnimatedButton>
+        </Animated.View>
+      }
+
     </>
   );
-});
+},
+  // memo comparator: re-render only when id changes (props are simple)
+  (prevProps, nextProps) => prevProps.id === nextProps.id
+);
 
-const ImageItem = ({ item }: { item: MediaSearch }) => {
 
+const ImageItem = memo(({
+  item,
+}: {
+  item: MediaSearch;
+}) => {
   const router = useRouter();
   const setMedia = useMediaStore((state) => state.setMedia);
   const setRatingStore = useRatingStore((state) => state.setRating);
 
-  const { onRate } = useRatingDrawer();
+  const { onRate, onDeleteRating } = useRating();
+  const { onBookmark } = useBookmark();
 
-  const setRating = useMediaRatingsStore((s) => s.setRating);
+  // subscribe only to this item's rating and bookmark
+  const currentRating = useRatingFor(item.id); // uses helper, returns number (default 0)
+  // const bookmark = useBookmarkFor(item.id); // uses helper, returns boolean (default false)
 
-  const currentRating = useMediaRatingsStore(
-    useCallback((s) => s.ratings.get(item.id) ?? 0, [item.id])
-  );
+  // stable setters from the stores
+  // const setRating = useMediaRatingsStore((s) => s.setRating);
+  // const setBookmark = useMediaBookmarkStore((s) => s.setBookmark);
 
-  const handleIrParaDetalhes = (media: Media, rating: number) => {
-    setMedia(media);
-    setRatingStore(rating)
-
+  const handleIrParaDetalhes = useCallback((media: MediaSearch, rating: number) => {
+    setMedia(media as any); // cast if MediaSearch vs Media types differ
+    setRatingStore(rating);
     router.push({
       pathname: "/(tabs)/detalhe",
       params: { from: "pesquisa" }
     });
-  };
+  }, [setMedia, setRatingStore, router]);
+
+  // const handleRatingFromItem = useCallback((newRating: number) => {
+    // optimistic local update
+    // setRating(item.id, newRating);
+    // call side-effect handler (network)
+    // onRate(newRating, item.id);
+  // }, [item.id, onRate, setRating]);
+
+  // const handleBookmarkFromItem = useCallback((adicionar: boolean) => {
+  //   setBookmark(item.id, adicionar);
+  //   onBookmark(adicionar, item.id);
+  // }, [item.id, onBookmark, setBookmark]);
+
   const blurhash = 'B0JH:g-;fQ_3fQfQ';
-
   const uri = `https://image.tmdb.org/t/p/original/${item.backdrop_path}`;
-
-  const handleRatingFromItem = useCallback((newRating: number) => {
-    setRating(item.id, newRating);
-    setTimeout(() => onRate(newRating, item), 0);
-  }, [item, onRate, setRating]);
-
-  useEffect(() => {
-    if (item.user_rating !== null && item.user_rating > 0) {
-      setRating(item.id, item.user_rating)
-    }
-  }, [item, item.user_rating, setRating])
 
   return (
     <View className='rounded-3xl border border-neutral-900 w-[95%] mx-auto flex mb-8' >
-      <Pressable onPress={() => handleIrParaDetalhes(item, currentRating ?? 0)}
-      >
+      <Pressable onPress={() => handleIrParaDetalhes(item, currentRating ?? 0)}>
         <Image
           source={{ uri }}
           style={{ width: "100%", aspectRatio: 3 / 2, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
@@ -177,12 +378,22 @@ const ImageItem = ({ item }: { item: MediaSearch }) => {
         </Pressable>
 
         <View className='flex flex-col gap-2 w-full justify-center items-center pt-4'>
-          <RatingLeaf id={item.id} onRate={handleRatingFromItem}></RatingLeaf>
+          <RatingLeaf
+            id={item.id}
+            onRate={onRate}
+            onDeleteRating={onDeleteRating}
+            onBookmark={onBookmark}
+          />
         </View>
       </View>
     </View>
   );
-};
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.item.id === nextProps.item.id
+  );
+});
+ImageItem.displayName = "ImageItem";
 
 const HeaderList = ({
   termo,
@@ -225,7 +436,6 @@ const HeaderList = ({
           <Select
             className='rounded-full'
             onValueChange={(value) => {
-              console.log("value changed", value)
               setSortBy(value)
             }}
             defaultValue={sortAtual === 'title' ? 'Nome' : 'Data de lançamento'}
@@ -304,6 +514,7 @@ const Pesquisa = () => {
 
   const opacity = useSharedValue(0);
   const translateX = useSharedValue(-20);
+
   useFocusEffect(
     useCallback(() => {
       opacity.value = withTiming(1, { duration: 300 })
@@ -319,6 +530,7 @@ const Pesquisa = () => {
     opacity: opacity.value,
     transform: [{ translateX: translateX.value }],
   }));
+
   const adicionarGenero = (genero: string) => {
     if (generosSelecionados.length >= 3) {
       toast.show("Escolha até 3 gêneros.", "warning", 'top')
@@ -346,7 +558,6 @@ const Pesquisa = () => {
   const fetchResultados = async ({ pageParam = 0 }: { pageParam: number }): Promise<Pagina> => {
     const filtros: FilterCondition[] = []
 
-    console.log("fetchResultados")
     generosSelecionados.forEach((genero) => {
       filtros.push({
         value: generosJson[genero],
@@ -421,6 +632,23 @@ const Pesquisa = () => {
     }, [data]
   );
 
+  const setBookmark = useMediaBookmarkStore((s) => s.setBookmark);
+  const setRating = useMediaRatingsStore((s) => s.setRating);
+
+  useEffect(() => {
+    if (medias.length > 0) {
+      medias.forEach((item) => {
+        if (item.bookmarked) {
+          setBookmark(item.id, true);
+        }
+
+        if (item.user_rating && item.user_rating > 0) {
+          setRating(item.id, item.user_rating)
+        }
+      });
+    }
+  }, [medias, setBookmark, setRating]);
+
   const validarQuery = (): boolean => {
     inputRef.current?.blur()
 
@@ -458,9 +686,6 @@ const Pesquisa = () => {
   }
 
   const labels = generos;
-
-  console.log("data: ", data)
-  console.log("status: ", fetchStatus)
 
   return (
     <Animated.View className='flex flex-1 bg-black' style={animatedStyle}>
@@ -683,6 +908,7 @@ const Pesquisa = () => {
           <FlashList
             data={medias}
             className='flex flex-col gap-2 w-full'
+            removeClippedSubviews={true}
             keyExtractor={(item) => item.id}
             estimatedItemSize={800}
             drawDistance={1200}
@@ -711,7 +937,11 @@ const Pesquisa = () => {
                 </View>
               </View>
             )}
-            renderItem={({ item }) => <ImageItem item={item} />}
+            renderItem={({ item }) => (
+              <ImageItem
+                item={item}
+              />
+            )}
             onEndReached={() => {
               if (hasNextPage && !isFetchingNextPage) {
                 fetchNextPage();

@@ -1,5 +1,6 @@
-import { Media } from "@/types/media.types";
 import { create } from "zustand";
+import { useCallback } from "react";
+import { Media } from "@/types/media.types";
 
 interface MediaStore {
   media: Media | null;
@@ -12,19 +13,8 @@ interface RatingStore {
   setRating: (rating: number) => void;
 }
 
-export const useMediaStore = create<MediaStore>((set) => ({
-  media: null,
-  setMedia: (media: Media) => set({ media }),
-  clearMedia: () => set({ media: null })
-}));
-
-export const useRatingStore = create<RatingStore>((set) => ({
-  rating: 0,
-  setRating: (rating: number) => set({ rating }),
-}));
-
 interface RatingsStore {
-  ratings: Map<string, number>;
+  ratings: Record<string, number>;
   version: number;
   setRating: (mediaId: string, rating: number) => void;
   getRating: (mediaId: string) => number | undefined;
@@ -33,7 +23,7 @@ interface RatingsStore {
 }
 
 interface BookmarkStore {
-  bookmarks: Map<string, boolean>;
+  bookmarks: Record<string, boolean>;
   version: number;
   getVersion: () => number;
   setBookmark: (mediaId: string, bookmark: boolean) => void;
@@ -43,69 +33,86 @@ interface BookmarkStore {
   incrementVersion: () => void;
 }
 
+/* Simple media and rating stores (unchanged semantics) */
+export const useMediaStore = create<MediaStore>((set) => ({
+  media: null,
+  setMedia: (media: Media) => set({ media }),
+  clearMedia: () => set({ media: null }),
+}));
+
+export const useRatingStore = create<RatingStore>((set) => ({
+  rating: 0,
+  setRating: (rating: number) => set({ rating }),
+}));
+
+/* Ratings store using plain objects */
 export const useMediaRatingsStore = create<RatingsStore>((set, get) => ({
-  ratings: new Map(),
+  ratings: {},
   version: 0,
 
   setRating: (id, rating) =>
     set((state) => {
-      // Check if the rating is different before updating
-      if (state.ratings.get(id) === rating) return {}; // No change
-
-      // Mutate the Map in-place (cheap) and bump the version for shallow re-render
-      state.ratings.set(id, rating);
-      const newVersion = state.version + 1;
-      return { ratings: state.ratings, version: newVersion };
+      const prev = state.ratings[id];
+      if (prev === rating) return {}; // no change
+      // immutable update
+      const newRatings = { ...state.ratings, [id]: rating };
+      return { ratings: newRatings, version: state.version };
     }),
 
-  getRating: (mediaId) => get().ratings.get(mediaId),
+  getRating: (mediaId) => get().ratings[mediaId],
 
   clearRating: (mediaId) =>
     set((state) => {
-      if (!state.ratings.has(mediaId)) return {};
-      state.ratings.delete(mediaId);
-      return { version: state.version + 1 };
+      if (!(mediaId in state.ratings)) return {};
+      const { [mediaId]: _, ...rest } = state.ratings;
+      return { ratings: rest, version: state.version };
     }),
 
   clearAll: () =>
     set((state) => {
-      if (state.ratings.size === 0) return {};
-      state.ratings.clear();
-      return { version: state.version + 1 };
+      if (Object.keys(state.ratings).length === 0) return {};
+      return { ratings: {}, version: state.version };
     }),
 }));
 
+/* Bookmark store using plain objects */
 export const useMediaBookmarkStore = create<BookmarkStore>((set, get) => ({
-  bookmarks: new Map(),
+  bookmarks: {},
   version: 0,
   getVersion: () => get().version,
 
   setBookmark: (id, bookmark) =>
     set((state) => {
-      if (state.bookmarks.get(id) === bookmark) return {};
-
-      const newBookmarks = new Map(state.bookmarks);
-      newBookmarks.set(id, bookmark);
-
+      const prev = state.bookmarks[id];
+      if (prev === bookmark) return {};
+      const newBookmarks = { ...state.bookmarks, [id]: bookmark };
       return {
         bookmarks: newBookmarks,
-        version: state.version
+        version: state.version,
       };
     }),
 
-  getBookmark: (mediaId) => get().bookmarks.get(mediaId),
+  getBookmark: (mediaId) => get().bookmarks[mediaId],
 
   clearBookmark: (mediaId) =>
     set((state) => {
-      if (!state.bookmarks.has(mediaId)) return {};
-      const newBookmarks = new Map(state.bookmarks);
-      newBookmarks.delete(mediaId);
-      return { bookmarks: newBookmarks, version: state.version + 1 };
+      if (!(mediaId in state.bookmarks)) return {};
+      const { [mediaId]: _, ...rest } = state.bookmarks;
+      return { bookmarks: rest, version: state.version };
     }),
 
-  clearAll: () =>
-    set(() => ({ bookmarks: new Map(), version: 0 })),
+  clearAll: () => set(() => ({ bookmarks: {}, version: 0 })),
 
-  incrementVersion: () =>
-    set((state) => ({ version: state.version + 1 })),
+  incrementVersion: () => set((state) => ({ version: state.version + 1 })),
 }));
+
+/* Helper hooks: subscribe to a single id (keeps selectors minimal) */
+export const useRatingFor = (id: string) =>
+  useMediaRatingsStore(
+    useCallback((s) => s.ratings[id] ?? undefined, [id])
+  );
+
+export const useBookmarkFor = (id: string) =>
+  useMediaBookmarkStore(
+    useCallback((s) => s.bookmarks[id] ?? false, [id])
+  );

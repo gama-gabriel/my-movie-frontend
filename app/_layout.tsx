@@ -12,7 +12,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView className='flex-1' style={{backgroundColor: 'black', flex: 1}}>
       <QueryClientProvider client={queryClient}>
-        <ClerkProvider tokenCache={tokenCache} publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+        <ClerkProvider tokenCache={tokenCache} publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY} telemetry={false}>
           <GluestackUIProvider mode="dark" >
             <Slot />
           </GluestackUIProvider>
