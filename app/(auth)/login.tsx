@@ -89,6 +89,7 @@ export default function Page() {
         // See https://clerk.com/docs/custom-flows/error-handling
         // for more info on error handling
         setMensagemErro(err.errors?.[0]?.longMessage || 'Ocorreu um erro. Tente novamente.')
+        console.log(err.errors[0]?.code)
       } finally {
         setLoading(false)
       }

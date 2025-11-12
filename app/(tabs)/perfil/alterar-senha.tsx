@@ -89,6 +89,7 @@ const AlterarSenha = () => {
 
     } catch (err: any) {
       setMensagemErro(err.errors[0]?.longMessage || 'Ocorreu um erro desconhecido. Tente novamente.')
+      console.log(err.errors[0]?.code)
       console.error('Error updating password:', err);
     } finally {
       setLoading(false)
@@ -96,7 +97,7 @@ const AlterarSenha = () => {
   };
 
   return (
-    <View className="flex flex-1 pt-20 px-4">
+    <View className="flex flex-1 py-4 px-4">
 
       <KeyboardAwareScrollView
         contentContainerStyle={{ padding: 0 }}
@@ -113,8 +114,6 @@ const AlterarSenha = () => {
             Alterar senha
           </Text>
         </View>
-
-
 
         <Animated.View
           entering={FadeIn.duration(200).springify().withInitialValues({
@@ -210,7 +209,7 @@ const AlterarSenha = () => {
 
           </View>
 
-          <View className='flex flex-col w-full gap-1 pb-6'>
+          <View className='flex flex-col w-full gap-1 pb-2'>
             <Text className='text-white pb-1 ps-4 font-bold'>Confirmar nova senha</Text>
 
             <Input size='xl' isInvalid={!senhasIguais}>
@@ -248,25 +247,24 @@ const AlterarSenha = () => {
               </View>
             )}
 
-            {mensagemErro &&
-              <AnimatedAlert
-                entering={FadeIn.duration(100).springify().withInitialValues({
-                  transform: [{ translateY: 20 }],
-                })}
-                exiting={FadeOut.duration(100).springify().withInitialValues({
-                  transform: [{ translateY: -20 }],
-                })}
-                action="error"
-                className="gap-3 w-full p-4 rounded-3xl">
-                <AlertIcon as={InfoIcon} size="xl" className="fill-none text-red-500" />
-                <AlertText size="lg" className='text-white pe-4 ps-4 flex-1 flex-wrap'>
-                  {mensagemErro}
-                </AlertText>
-              </AnimatedAlert>
-            }
-
           </View>
 
+          {mensagemErro &&
+            <AnimatedAlert
+              entering={FadeIn.duration(200).springify().withInitialValues({
+                transform: [{ translateY: 20 }],
+              })}
+              exiting={FadeOut.duration(200).springify().withInitialValues({
+                transform: [{ translateY: -20 }],
+              })}
+              action="error"
+              className="gap-3 w-full p-4 rounded-3xl">
+              <AlertIcon as={InfoIcon} size="xl" className="fill-none text-red-500" />
+              <AlertText size="lg" className='text-white pe-4 ps-4 flex-1 flex-wrap'>
+                {mensagemErro}
+              </AlertText>
+            </AnimatedAlert>
+          }
           <AnimatedButton activeColor={primaryDark} inactiveColor={primary} variant='solid' size='xl' className='w-full' onPress={handleChangePassword}>
             <ButtonSpinner className={loading ? 'data-[active=true]:text-neutral-100' : 'hidden'} color='white' ></ButtonSpinner>
             <ButtonText className='text-white font-bold pl-4 data-[disabled=true]:text-neutral-500'>Alterar senha</ButtonText>

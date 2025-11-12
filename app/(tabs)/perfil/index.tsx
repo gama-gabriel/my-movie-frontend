@@ -272,7 +272,7 @@ export default function Perfil() {
                 <View className="flex w-full flex-col gap-4 border border-neutral-700 rounded-3xl py-6 px-6">
                   <Text className="text-white text-xl font-bold">Ações da conta</Text>
 
-                  <AnimatedButton
+                  {/* <AnimatedButton
                     inactiveColor='transparent'
                     activeColor={neutral900}
                     variant='solid'
@@ -282,7 +282,7 @@ export default function Perfil() {
                   >
                     <ButtonIcon as={ListIcon} color={neutral100}></ButtonIcon>
                     <ButtonText className='text-white pl-4'>Minhas avaliações</ButtonText>
-                  </AnimatedButton>
+                  </AnimatedButton> */}
 
                   {hasPassword &&
                     <AnimatedButton
