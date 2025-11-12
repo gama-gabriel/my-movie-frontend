@@ -1,11 +1,10 @@
 import { Icon } from '@/components/ui/icon';
 import { SignedIn, SignedOut, useAuth } from '@clerk/clerk-expo';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { BookmarkIcon, EraserIcon, FrownIcon, UserRound } from 'lucide-react-native';
+import { BookmarkIcon, EraserIcon, FrownIcon } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import Logo from '@/assets/logo.svg'
 import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 import { Media, MediaSearch, ResponseMediaSearch } from '@/types/media.types';
 import { protectedFetch } from '@/utils/Auth.utils';
@@ -21,6 +20,7 @@ import { AnimatedButton } from '../components/AnimatedButton';
 import { ButtonIcon, ButtonText } from '@/components/ui/button';
 import { useRating } from '@/hooks/useRating';
 import { useBookmark } from '@/hooks/useBookmark';
+import Header from '@/components/Header';
 
 interface Pagina {
   media: MediaSearch[];
@@ -43,14 +43,17 @@ const ImageItem = ({ item }: { item: MediaSearch }) => {
   const { onRate, onDeleteRating } = useRating();
   const { onBookmark } = useBookmark();
 
-  const currentRating = useRatingFor(item.id); // returns number | 0 default
+  const currentRating = useRatingFor(item.id);
 
   const setRating = useMediaRatingsStore((s) => s.setRating);
 
   const handleIrParaDetalhes = (media: Media, rating: number) => {
     setMedia(media);
     setRatingStore(rating);
-    router.push("/(tabs)/detalhe");
+    router.push({
+      pathname: "/(tabs)/detalhe",
+      params: { from: 'lista' }
+    });
   };
 
   const blurhash = 'B0JH:g-;fQ_3fQfQ';
@@ -116,16 +119,8 @@ const RatingLeaf = memo(function RatingLeaf({
   onBookmark: (adicionar: boolean, media_id: string) => void;
 }) {
 
-  // const rating = useMediaRatingsStore(
-  //   useCallback((s) => s.ratings.get(id) ?? 0, [id])
-  // );
-
-  // const bookmark = useMediaBookmarkStore(
-  //   useCallback((s) => s.bookmarks.get(id) ?? false, [id])
-  // );
-
-  const rating = useRatingFor(id); // returns number | 0 default
-  const bookmark = useBookmarkFor(id); // returns boolean | false default
+  const rating = useRatingFor(id);
+  const bookmark = useBookmarkFor(id);
 
   const setRating = useMediaRatingsStore((s) => s.setRating);
   const clearRating = useMediaRatingsStore((s) => s.clearRating);
@@ -362,8 +357,6 @@ export default function Lista() {
     transform: [{ translateX: translateX.value }],
   }));
 
-  const router = useRouter();
-
   const fetchBookmarks = async ({ pageParam = 0 }: { pageParam: number }): Promise<Pagina> => {
     const params = `clerk_id=${userId!}&page_number=${pageParam}&page_size=10`
 
@@ -429,20 +422,8 @@ export default function Lista() {
   return (
     <>
       <SignedIn>
-        <View
-          className="absolute w-full left-0 z-10 h-20 bg-black/70 border-b border-neutral-900"
-        >
-          <View className="flex-row items-center justify-between p-6 h-20">
+        <Header paginaAtual='lista'/>
 
-            <Logo height={'100%'} preserveAspectRatio="xMinYMin meet" style={{ flex: 1 }}></Logo>
-            <Pressable
-              onPress={() => router.push('/(tabs)/perfil')}
-              className="p-3 rounded-full bg-neutral-900"
-            >
-              <Icon as={UserRound} />
-            </Pressable>
-          </View>
-        </View>
         <Animated.View className='flex-1 pt-20' style={animatedStyle} >
           {
             isLoading &&

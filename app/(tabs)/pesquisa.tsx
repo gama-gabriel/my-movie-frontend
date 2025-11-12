@@ -298,7 +298,6 @@ const RatingLeaf = memo(function RatingLeaf({
     </>
   );
 },
-  // memo comparator: re-render only when id changes (props are simple)
   (prevProps, nextProps) => prevProps.id === nextProps.id
 );
 
@@ -315,34 +314,16 @@ const ImageItem = memo(({
   const { onRate, onDeleteRating } = useRating();
   const { onBookmark } = useBookmark();
 
-  // subscribe only to this item's rating and bookmark
-  const currentRating = useRatingFor(item.id); // uses helper, returns number (default 0)
-  // const bookmark = useBookmarkFor(item.id); // uses helper, returns boolean (default false)
-
-  // stable setters from the stores
-  // const setRating = useMediaRatingsStore((s) => s.setRating);
-  // const setBookmark = useMediaBookmarkStore((s) => s.setBookmark);
+  const currentRating = useRatingFor(item.id);
 
   const handleIrParaDetalhes = useCallback((media: MediaSearch, rating: number) => {
-    setMedia(media as any); // cast if MediaSearch vs Media types differ
+    setMedia(media as any);
     setRatingStore(rating);
     router.push({
       pathname: "/(tabs)/detalhe",
       params: { from: "pesquisa" }
     });
   }, [setMedia, setRatingStore, router]);
-
-  // const handleRatingFromItem = useCallback((newRating: number) => {
-    // optimistic local update
-    // setRating(item.id, newRating);
-    // call side-effect handler (network)
-    // onRate(newRating, item.id);
-  // }, [item.id, onRate, setRating]);
-
-  // const handleBookmarkFromItem = useCallback((adicionar: boolean) => {
-  //   setBookmark(item.id, adicionar);
-  //   onBookmark(adicionar, item.id);
-  // }, [item.id, onBookmark, setBookmark]);
 
   const blurhash = 'B0JH:g-;fQ_3fQfQ';
   const uri = `https://image.tmdb.org/t/p/original/${item.backdrop_path}`;

@@ -15,14 +15,13 @@ import { useFocusEffect, useRouter } from 'expo-router'
 import { Media, ResponseMedia } from '@/types/media.types'
 import { useBookmarkFor, useMediaBookmarkStore, useMediaRatingsStore, useMediaStore, useRatingFor, useRatingStore } from '@/hooks/useMediaStore'
 import StarRating from '@/components/StarRating'
-import Logo from '@/assets/logo.svg'
-import { Icon } from '@/components/ui/icon';
-import { BookmarkIcon, EraserIcon, FrownIcon, UserRound } from 'lucide-react-native';
+import { BookmarkIcon, EraserIcon, FrownIcon } from 'lucide-react-native';
 import { AnimatedButton } from '../components/AnimatedButton';
 import { ButtonIcon, ButtonText } from '@/components/ui/button';
 import { useRating } from '@/hooks/useRating';
 import { useBookmark } from '@/hooks/useBookmark';
 import { SkeletonFlashList } from '@/components/SkeletonFlashList';
+import Header from '@/components/Header';
 
 interface Pagina {
   media: Media[];
@@ -628,7 +627,10 @@ const ImageItem = memo(({ item }: { item: Media }) => {
   const handleIrParaDetalhes = (media: Media, rating: number) => {
     setMedia(media);
     setRatingStore(rating);
-    router.push("/(tabs)/detalhe");
+    router.push({
+      pathname: "/(tabs)/detalhe",
+      params: { from: 'home' }
+    });
   };
 
   const blurhash = 'B0JH:g-;fQ_3fQfQ';
@@ -706,26 +708,11 @@ export default function Page() {
     transform: [{ translateX: translateX.value }],
   }));
 
-
-  const router = useRouter();
-
   return (
     <>
       <SignedIn>
-        <View
-          className="absolute w-full left-0 z-10 h-20 bg-black/70 border-b border-neutral-900"
-        >
-          <View className="flex-row items-center justify-between p-6 h-20">
+        <Header paginaAtual='home' />
 
-            <Logo height={'100%'} preserveAspectRatio="xMinYMin meet" style={{ flex: 1 }}></Logo>
-            <Pressable
-              onPress={() => router.push('/(tabs)/perfil')}
-              className="p-3 rounded-full bg-neutral-900"
-            >
-              <Icon as={UserRound} />
-            </Pressable>
-          </View>
-        </View>
         <Animated.View className='flex-1' style={animatedStyle} >
           <ListaMedias />
         </Animated.View>

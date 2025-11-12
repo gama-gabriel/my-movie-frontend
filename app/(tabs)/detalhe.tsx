@@ -33,17 +33,13 @@ export default function Detalhe() {
 
   const { onBookmark } = useBookmark();
 
-  const params = useLocalSearchParams();
+  const params = useLocalSearchParams<{ from: 'pesquisa' | 'home' | 'lista' }>();
   const router = useRouter()
 
   useEffect(() => {
     const backAction = () => {
-      if (params.from === 'pesquisa') {
-        router.push('/(tabs)/pesquisa');
-      } else {
-        router.back();
-      }
-      return true;
+        router.push(`/(tabs)/${params.from}`);
+        return true
     };
 
     const backHandler = BackHandler.addEventListener(
@@ -53,7 +49,6 @@ export default function Detalhe() {
 
     return () => backHandler.remove();
   }, [router, params]);
-
 
   const handleBookmarkChange = useCallback(
     (adicionar: boolean) => {

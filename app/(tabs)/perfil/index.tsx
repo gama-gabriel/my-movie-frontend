@@ -5,9 +5,9 @@ import { useToastVariant } from "@/hooks/useToastVariant";
 import { protectedFetch } from "@/utils/Auth.utils";
 import { SignedIn, SignedOut, useAuth, useUser } from "@clerk/clerk-expo";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Redirect, useFocusEffect, useRouter } from "expo-router";
+import { Redirect, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, BackHandler } from "react-native";
 import { Image } from 'expo-image';
 import { AnimatedButton } from "../../components/AnimatedButton";
 import { danger, neutral100, neutral900 } from "@/constants/constants";
@@ -55,6 +55,21 @@ export default function Perfil() {
     }
   }, [user])
 
+  const params = useLocalSearchParams<{ from: 'pesquisa' | 'home' }>();
+
+  useEffect(() => {
+    const backAction = () => {
+      router.push(`/(tabs)/${params.from}`);
+      return true
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [router, params]);
 
   const opacity = useSharedValue(0);
   const translateX = useSharedValue(20);
