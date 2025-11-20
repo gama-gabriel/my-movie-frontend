@@ -422,18 +422,21 @@ export default function Lista() {
   return (
     <>
       <SignedIn>
-        <Header paginaAtual='lista'/>
+        <Header paginaAtual='lista' />
 
-        <Animated.View className='flex-1 pt-20' style={animatedStyle} >
+        <Animated.View className='flex-1' style={animatedStyle} >
           {
             isLoading &&
-            <SkeletonFlashList />
+            <View className='flex-1 pt-20'>
+              <SkeletonFlashList />
+            </View>
           }
 
           {
             status === 'success' &&
-            <View className='flex-1 bg-black'>
+            <View className='flex-1 bg-black '>
               <FlashList
+                contentContainerClassName='pt-20'
                 data={medias}
                 className='flex flex-col gap-2 w-full'
                 keyExtractor={(item) => item.id}

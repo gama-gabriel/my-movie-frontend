@@ -28,13 +28,6 @@ export default function Layout() {
             name="home"
             options={{
               title: 'Para você',
-              animation: 'none',
-              transitionSpec: {
-                animation: 'timing',
-                config: {
-                  duration: 200,
-                },
-              },
               sceneStyle: { backgroundColor: 'transparent' },
               tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
               tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },

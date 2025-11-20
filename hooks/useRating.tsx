@@ -37,10 +37,10 @@ export const useRating = () => {
     onSuccess: (data) => {
       console.log("data rating positive", data)
       if (data.ratings[0].score === 0) {
-        toast.show("Ação realizada com sucesso", "success")
-      } else {
-        toast.show("Avaliação realizada com sucesso!", "success")
+        return
       }
+
+      toast.show("Avaliação realizada com sucesso!", "success")
     },
     onError: (data) => {
       console.log("data rating error", data)

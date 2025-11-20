@@ -7,15 +7,14 @@ import { SignedIn, SignedOut, useAuth, useUser } from "@clerk/clerk-expo";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Redirect, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, ScrollView, Pressable, BackHandler } from "react-native";
+import { View, Text, ScrollView, BackHandler } from "react-native";
 import { Image } from 'expo-image';
 import { AnimatedButton } from "../../components/AnimatedButton";
 import { danger, neutral100, neutral900 } from "@/constants/constants";
-import { KeyRoundIcon, ListIcon, PencilIcon, Trash2Icon, UserRound } from "lucide-react-native";
+import { KeyRoundIcon, PencilIcon, Trash2Icon } from "lucide-react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { useMediaBookmarkStore, useMediaRatingsStore } from "@/hooks/useMediaStore";
-import { Icon } from "@/components/ui/icon";
-import Logo from '@/assets/logo.svg'
+import Header from "@/components/Header";
 
 export default function Perfil() {
 
@@ -211,22 +210,10 @@ export default function Perfil() {
   return (
     <>
       <SignedIn>
-        <View
-          className="absolute w-full left-0 z-10 h-20 bg-black/70 border-b border-neutral-900"
-        >
-          <View className="flex-row items-center justify-between p-6 h-20">
-
-            <Logo height={'100%'} preserveAspectRatio="xMinYMin meet" style={{ flex: 1 }}></Logo>
-            <Pressable
-              onPress={() => router.navigate('/(tabs)/perfil')}
-              className="p-3 rounded-full bg-neutral-900"
-            >
-              <Icon as={UserRound} />
-            </Pressable>
-          </View>
-        </View>
-        <Animated.View className="flex flex-1 pt-20 px-4" style={animatedStyle}>
-          <ScrollView showsVerticalScrollIndicator={false} className="flex flex-col">
+        <Header mostrarBotaoPerfil={false} />
+        
+        <Animated.View className="flex flex-1 px-4" style={animatedStyle}>
+          <ScrollView showsVerticalScrollIndicator={false} className="flex flex-col" contentContainerClassName="pt-20">
             <View className="flex-1 flex flex-col pt-6 pb-12 gap-8 w-full items-center">
               <Text className="m-0 text-4xl font-bold text-white">
                 Meu perfil

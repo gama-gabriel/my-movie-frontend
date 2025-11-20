@@ -5,13 +5,13 @@ import { UserRound } from 'lucide-react-native'
 import Logo from '@/assets/logo.svg'
 import { useRouter } from 'expo-router'
 
-const Header = ({paginaAtual}: {paginaAtual: string}) => {
+const Header = ({ paginaAtual, mostrarBotaoPerfil = true }: { paginaAtual?: string, mostrarBotaoPerfil?: boolean }) => {
   const router = useRouter()
-  
+
   const navegarParaPerfil = () => {
     router.push({
       pathname: "/(tabs)/perfil",
-      params: { from: paginaAtual}
+      params: { from: paginaAtual }
     });
   }
 
@@ -22,12 +22,15 @@ const Header = ({paginaAtual}: {paginaAtual: string}) => {
       <View className="flex-row items-center justify-between p-6 h-20">
 
         <Logo height={'100%'} preserveAspectRatio="xMinYMin meet" style={{ flex: 1 }}></Logo>
-        <Pressable
-          onPress={navegarParaPerfil}
-          className="p-3 rounded-full bg-neutral-900"
-        >
-          <Icon as={UserRound} />
-        </Pressable>
+        {mostrarBotaoPerfil &&
+          <Pressable
+            onPress={navegarParaPerfil}
+            className="p-3 rounded-full bg-neutral-900"
+          >
+            <Icon as={UserRound} />
+          </Pressable>
+        }
+
       </View>
     </View>
   )

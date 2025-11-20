@@ -37,7 +37,7 @@ export const useToastVariant = () => {
           return (
             <SafeAreaView
               edges={["bottom", "left", "right", 'top']}
-              className="pb-4 flex"
+              className=" flex"
             >
               <Toast
                 nativeID={uniqueToastId}

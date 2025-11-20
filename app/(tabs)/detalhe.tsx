@@ -397,7 +397,7 @@ export default function Detalhe() {
   );
 
   return (
-    <View className="flex flex-1 bg-black pt-20">
+    <View className="flex flex-1 bg-black">
       {!media ? (
         <View className="px-4 py-8 gap-6 pt-24">
           <Skeleton colorMode="dark" height={300} radius={24} />
