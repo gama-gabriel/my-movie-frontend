@@ -106,8 +106,8 @@ export default function Cadastro() {
 
       if (user) {
         await user.update({
-          firstName: nome.split(' ')[0], // First part of the name
-          lastName: nome.split(' ').slice(1).join(' '), // Remaining part of the name
+          firstName: nome.split(' ')[0],
+          lastName: nome.split(' ').slice(1).join(' '),
         });
       }
       // Send user an email with verification code

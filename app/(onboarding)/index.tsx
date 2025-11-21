@@ -1,6 +1,6 @@
 import { useUser } from "@clerk/clerk-expo";
 import { UserResource } from "@clerk/types";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Redirect, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View, Text } from "react-native";
@@ -24,7 +24,6 @@ const postCheckUser = async (id: string) => {
     },
     body: JSON.stringify({ id: id }),
   });
-
   console.log(response)
   if (!response.ok) throw Error('Network response was not ok');
   const data = await response.json();
@@ -33,9 +32,7 @@ const postCheckUser = async (id: string) => {
 }
 
 const createUser = async (user: UserResource, username: string | undefined) => {
-
   const createdName = username ? username : user.fullName
-
   const response = await fetch('https://mymovie-nhhq.onrender.com/user/new_user', {
     method: 'POST',
     headers: {
@@ -47,72 +44,73 @@ const createUser = async (user: UserResource, username: string | undefined) => {
       name: createdName
     }),
   });
-
   console.log(response)
   if (!response.ok) throw Error('Network response was not ok');
   const data = await response.json();
   console.warn(data)
-  user.reload()
+  await user.reload()
   return data;
 }
 
 export default function Onboarding() {
   const { user } = useUser()
-  const [idToCheck, setIdToCheck] = useState<string | null>(null)
-
   const { username } = useLocalSearchParams<{ username?: string }>();
-
-  const { data: userExists, isLoading, error } = useQuery({
-    queryKey: ['check-user-existence', idToCheck],
-    queryFn: () => postCheckUser(idToCheck!),
-    enabled: !!idToCheck,
-    retry: false,
-  })
-
-  const { data: createdUser, error: errorCreatingUser, isLoading: isCreatingUser } = useQuery({
-    queryKey: ['createUser', userExists],
-    queryFn: () => createUser(user!, username),
-    enabled: !userExists?.exists,
-    retry: false,
-  })
-
-  useEffect(() => {
-    if (user) {
-      console.log(user.id)
-      setIdToCheck(user.id)
-    }
-  }, [user, idToCheck])
-
-  if (error || errorCreatingUser) {
-    if (error) {
+  const [shouldRedirectToHome, setShouldRedirectToHome] = useState(false);
+  const [shouldRedirectToInfo, setShouldRedirectToInfo] = useState(false);
+  
+  const checkUserMutation = useMutation({
+    mutationFn: (id: string) => postCheckUser(id),
+    onSuccess: (data) => {
+      console.log("User check result:", data);
+      if (data.exists) {
+        setShouldRedirectToHome(true);
+      } else {
+        if (user) {
+          createUserMutation.mutate({ user, username });
+        }
+      }
+    },
+    onError: (error) => {
       console.error("Error checking user existence:", error);
     }
-    if (errorCreatingUser) {
-      console.error("Error creating user:", errorCreatingUser);
+  });
+
+  const createUserMutation = useMutation({
+    mutationFn: ({ user, username }: { user: UserResource; username: string | undefined }) => 
+      createUser(user, username),
+    onSuccess: (data) => {
+      console.log("User created successfully:", data);
+      setShouldRedirectToInfo(true);
+    },
+    onError: (error) => {
+      console.error("Error creating user:", error);
     }
-    console.error("Error:", error || errorCreatingUser);
-    console.log("returning on error")
+  });
+
+  useEffect(() => {
+    if (user && !checkUserMutation.data && !checkUserMutation.isPending) {
+      console.log("Checking user:", user.id);
+      checkUserMutation.mutate(user.id);
+    }
+  }, [user, checkUserMutation]);
+
+  if (checkUserMutation.isPending || createUserMutation.isPending) {
+    console.log("Loading...");
     return <Loading />
   }
 
-  if (isLoading || isCreatingUser) {
-    console.log("returning on loading")
+  if (checkUserMutation.isError || createUserMutation.isError) {
+    console.error("Error:", checkUserMutation.error || createUserMutation.error);
     return <Loading />
   }
 
-  if (userExists?.exists) {
+  if (shouldRedirectToHome) {
     return <Redirect href="/(tabs)/home" />
   }
 
-  if (!userExists?.exists && createdUser) {
-    console.log("User created successfully, redirecting to onboarding");
-    return <Redirect href="/(tabs)/home" />
+  if (shouldRedirectToInfo) {
+    return <Redirect href="/(tabs)/informacoes" />
   }
 
-  if (!userExists?.exists) {
-    console.log("User does not exist, creating user...");
-    return <Loading />
-  }
-
-  return null;
+  return <Loading />;
 }

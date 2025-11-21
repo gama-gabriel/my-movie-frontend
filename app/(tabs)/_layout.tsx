@@ -91,9 +91,16 @@ export default function Layout() {
               sceneStyle: { backgroundColor: 'transparent' },
               tabBarStyle: { borderTopWidth: 1, borderColor: neutral900, backgroundColor: '#000000' },
               tabBarLabelStyle: { color: 'white', fontWeight: 700, paddingTop: 4 },
-              tabBarIcon: ({ color }) => (
-                <Icon as={UserRound} style={{ width: 20, height: 20, color: color }} />
-              ),
+            }}
+          />
+
+          <Tabs.Screen
+            name="informacoes"
+            options={{
+              title: 'Informações',
+              href: null,
+              sceneStyle: { backgroundColor: 'transparent' },
+              tabBarStyle: { display: 'none' },
             }}
           />
         </Tabs>

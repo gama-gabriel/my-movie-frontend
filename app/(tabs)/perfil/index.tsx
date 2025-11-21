@@ -58,7 +58,7 @@ export default function Perfil() {
 
   useEffect(() => {
     const backAction = () => {
-      router.push(`/(tabs)/${params.from}`);
+      router.push(`/(tabs)/${params.from ?? 'home'}`);
       return true
     };
 
@@ -210,7 +210,7 @@ export default function Perfil() {
   return (
     <>
       <SignedIn>
-        <Header mostrarBotaoPerfil={false} />
+        <Header paginaAtual="perfil" mostrarBotaoPerfil={false} />
         
         <Animated.View className="flex flex-1 px-4" style={animatedStyle}>
           <ScrollView showsVerticalScrollIndicator={false} className="flex flex-col" contentContainerClassName="pt-20">
