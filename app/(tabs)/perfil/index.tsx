@@ -4,7 +4,7 @@ import { ButtonIcon, ButtonSpinner, ButtonText } from "@/components/ui/button";
 import { useToastVariant } from "@/hooks/useToastVariant";
 import { protectedFetch } from "@/utils/Auth.utils";
 import { SignedIn, SignedOut, useAuth, useUser } from "@clerk/clerk-expo";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Redirect, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, ScrollView, BackHandler } from "react-native";
@@ -18,7 +18,6 @@ import Header from "@/components/Header";
 
 export default function Perfil() {
 
-  const queryClient = useQueryClient();
   const toast = useToastVariant()
   const { user } = useUser()
   const [username, setUsername] = useState('')
@@ -43,7 +42,7 @@ export default function Perfil() {
   }
 
   useEffect(() => {
-    console.log(user)
+    console.log(user?.id)
     const metadata = user?.publicMetadata
     if (metadata?.username) {
       setUsername(metadata.username as string)
@@ -104,7 +103,6 @@ export default function Perfil() {
   const excluirMutation = useMutation({
     mutationFn: excluirUsuarioFn,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["images"] });
       clearRatingsStore()
       clearBookmarkStore()
     },
@@ -113,7 +111,7 @@ export default function Perfil() {
   const excluirConta = async () => {
     setMostrarDialogExclusao(false);
     try {
-      excluirMutation.mutate(user!.id);
+      await excluirMutation.mutateAsync(user!.id);
       await signOut();
       router.replace('/(auth)/login')
       toast.show("Conta excluída com sucesso!", "success")

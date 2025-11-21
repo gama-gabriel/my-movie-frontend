@@ -70,6 +70,7 @@ export const useMediaRatingsStore = create<RatingsStore>((set, get) => ({
 
   clearAll: () =>
     set((state) => {
+      console.log("clearing ratings")
       if (Object.keys(state.ratings).length === 0) return {};
       return { ratings: {}, version: state.version };
     }),

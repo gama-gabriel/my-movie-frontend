@@ -27,7 +27,8 @@ interface Pagina {
   nextPage: number | undefined;
 }
 
-const HeaderList = () => (
+const HeaderList = ({possuiItens} : {possuiItens: boolean}) => (
+  possuiItens && 
   <View className='w-full flex flex-row items-center justify-start gap-4 px-4 pb-2'>
     <Heading className="m-0 text-xl font-bold text-white w-fit">
       Minha lista
@@ -443,7 +444,7 @@ export default function Lista() {
                 estimatedItemSize={800}
                 drawDistance={1200}
                 onEndReachedThreshold={2}
-                ListHeaderComponent={HeaderList}
+                ListHeaderComponent={() => <HeaderList possuiItens={medias?.length > 0}/>}
                 ListEmptyComponent={() => (
                   <View className='flex-1 bg-black flex items-center justify-center pt-10'>
                     <View className='flex flex-col w-3/4 items-center justify-center gap-6'>
