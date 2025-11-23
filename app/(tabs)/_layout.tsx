@@ -1,7 +1,7 @@
 import { Tabs  } from 'expo-router';
 import { SafeAreaView  } from 'react-native-safe-area-context';
 import { Icon } from '@/components/ui/icon';
-import { Home, UserRound, SearchIcon, BookmarkIcon } from 'lucide-react-native';
+import { Home, SearchIcon, BookmarkIcon } from 'lucide-react-native';
 import { RatingDrawer } from '@/components/RatingDrawer';
 import { RatingDrawerProvider } from '@/contexts/RatingDrawerContext';
 import { neutral900, primaryLight } from '@/constants/constants';
@@ -98,6 +98,16 @@ export default function Layout() {
             name="informacoes"
             options={{
               title: 'Informações',
+              href: null,
+              sceneStyle: { backgroundColor: 'transparent' },
+              tabBarStyle: { display: 'none' },
+            }}
+          />
+
+          <Tabs.Screen
+            name="primeira-avaliacao"
+            options={{
+              title: 'Pirmeira avaliação',
               href: null,
               sceneStyle: { backgroundColor: 'transparent' },
               tabBarStyle: { display: 'none' },

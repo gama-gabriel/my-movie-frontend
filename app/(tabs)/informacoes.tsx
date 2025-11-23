@@ -103,6 +103,15 @@ const Informacoes = () => {
     );
   };
 
+  const avancar = () => {
+    if (params.from !== undefined) {
+      router.replace('/home')
+      return
+    }
+
+    router.replace('/primeira-avaliacao')
+  }
+
   return (
     <SignedIn>
       <Animated.View className="flex flex-1 px-4" style={animatedStyle}>
@@ -164,7 +173,7 @@ const Informacoes = () => {
                   activeColor={primaryDark}
                   variant='solid'
                   size='xl'
-                  onPress={() => router.replace('/home')}
+                  onPress={avancar}
                 >
                   <ButtonText className='text-white pl-4'>Começar a explorar</ButtonText>
                 </AnimatedButton>
