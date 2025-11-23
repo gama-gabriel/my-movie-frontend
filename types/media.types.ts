@@ -10,6 +10,10 @@ export interface Media {
   cast: CastMember[]
   genres: string[];
   bookmarked?: boolean
+  original_title?: string;
+  runtime?: number;
+  number_of_seasons?: number;
+  number_of_episodes?: number;
 }
 
 export interface MediaSearch extends Media {

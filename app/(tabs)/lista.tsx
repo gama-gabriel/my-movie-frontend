@@ -87,6 +87,9 @@ const ImageItem = ({ item }: { item: MediaSearch }) => {
       <View className='p-4 gap-2 bg-white/5'>
         <Pressable onPress={() => handleIrParaDetalhes(item, currentRating ?? 0)}>
           <Text className='text-white font-bold m-0'>{item.title}</Text>
+          {item.title !== item.original_title &&
+            <Text className='text-neutral-100 italic m-0'>{item.original_title}</Text>
+          }
         </Pressable>
 
         <Pressable

@@ -70,3 +70,33 @@ export const generosJson: Record<string, string> = {
   "Talk Show": "Talk",
   "Terror": "Horror"
 }
+
+export const generosJsonInverse: Record<string, string> = {
+  "Action": "Ação",
+  "Action & Adventure": "Ação e Aventura",
+  "Animation": "Animação",
+  "Adventure": "Aventura",
+  "Comedy": "Comédia",
+  "Crime": "Crime",
+  "Documentary": "Documentário",
+  "Drama": "Drama",
+  "Fantasy": "Fantasia",
+  "Family": "Família",
+  "Western": "Faroeste",
+  "Science Fiction": "Ficção Científica",
+  "Sci-Fi & Fantasy": "Ficção Científica e Fantasia",
+  "TV Movie": "Filme de TV",
+  "War": "Guerra",
+  "War & Politics": "Guerra e Política",
+  "History": "História",
+  "Kids": "Infantil",
+  "Mystery": "Mistério",
+  "Music": "Música",
+  "News": "Notícias",
+  "Soap": "Novela",
+  "Reality": "Reality Show",
+  "Romance": "Romance",
+  "Thriller": "Suspense",
+  "Talk": "Talk Show",
+  "Horror": "Terror"
+};

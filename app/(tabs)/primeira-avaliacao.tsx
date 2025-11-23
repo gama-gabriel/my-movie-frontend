@@ -255,7 +255,12 @@ const ImageItem = memo(({
       />
 
       <View className='p-4 gap-2 bg-white/5 flex-1 rounded-r-3xl'>
-        <Text className='text-white font-bold m-0 flex-shrink'>{item.title}</Text>
+        <View className='gap-1'>
+          <Text className='text-white font-bold m-0 flex-shrink'>{item.title}</Text>
+          {item.title !== item.original_title &&
+            <Text className='text-neutral-100 italic m-0'>{item.original_title}</Text>
+          }
+        </View>
 
         <View
           className='flex flex-row justify-between items-center gap-4'

@@ -4,16 +4,16 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Badge, BadgeText } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
-import { BookmarkIcon, CalendarIcon, EraserIcon } from "lucide-react-native";
+import { BookmarkIcon, CalendarIcon, ClapperboardIcon, ClockIcon, EraserIcon, TvIcon } from "lucide-react-native";
 import { FlashList } from "@shopify/flash-list";
 import { StarRating } from "@/components/RatingDrawer";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { CastMember } from "@/types/media.types";
+import { CastMember, Media } from "@/types/media.types";
 import { Skeleton } from "moti/skeleton";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { AnimatedButton } from "../components/AnimatedButton";
-import { danger, neutral900, primaryLight } from "@/constants/constants";
+import { danger, generosJsonInverse, neutral900, primary, primaryLight } from "@/constants/constants";
 import { ButtonIcon, ButtonText } from "@/components/ui/button";
 import { useRating } from "@/hooks/useRating";
 import { useBookmark } from "@/hooks/useBookmark";
@@ -38,8 +38,8 @@ export default function Detalhe() {
 
   useEffect(() => {
     const backAction = () => {
-        router.push(`/(tabs)/${params.from}`);
-        return true
+      router.push(`/(tabs)/${params.from}`);
+      return true
     };
 
     const backHandler = BackHandler.addEventListener(
@@ -89,6 +89,36 @@ export default function Detalhe() {
     return tipo === "serie" ? `${ano}` : `${dia} de ${mes} de ${ano}`;
   };
 
+  const formatarDuracao = (runtime: number) => {
+    const horas = Math.floor(runtime / 60);
+    const minutos = runtime % 60;
+
+    if (horas > 0) {
+      if (minutos > 0) {
+        return `${horas}h ${minutos}m`;
+      } else {
+        return `${horas}h`;
+      }
+    } else {
+      return `${minutos}min`;
+    }
+
+  };
+
+  const formatarTemporadas = (temporadas: number, episodios: number) => {
+    if (temporadas === 1) {
+      if (episodios === 1) {
+        return `${temporadas} temporada, ${episodios} episódio`;
+      }
+      return `${temporadas} temporada, ${episodios} episódios`;
+    } else {
+      if (episodios === 1) {
+        return `${temporadas} temporadas, ${episodios} episódio`;
+      }
+      return `${temporadas} temporadas, ${episodios} episódios`;
+    }
+  };
+
   const opacity = useSharedValue(0);
   const listRef = useRef<FlashList<any>>(null);
 
@@ -117,9 +147,9 @@ export default function Detalhe() {
   ), []);
 
 
-  const HeaderComponent = React.memo(({ media, handleRatingChange }: any) => {
+  const HeaderComponent = React.memo(({ media, handleRatingChange }: { media: Media, handleRatingChange: (id: string, rating: number) => void }) => {
 
-    const RatingSection = React.memo(({ media, handleRatingChange }: any) => {
+    const RatingSection = React.memo(({ media, handleRatingChange }: { media: Media, handleRatingChange: (id: string, rating: number) => void }) => {
       const rating = useRatingFor(media.id);
       const bookmark = useBookmarkFor(media.id);
 
@@ -337,21 +367,57 @@ export default function Detalhe() {
           className="-mt-60 pt-24 flex flex-col gap-6 px-4 pb-12"
         >
           <View className="flex flex-col gap-4">
-            <Text className="m-0 text-4xl font-bold text-white">{media.title}</Text>
+            {media.is_movie &&
+              <View className="flex flex-row gap-4 items-center">
+                <Icon as={ClapperboardIcon} className="text-primary-light" size={24}></Icon>
+                <Text className='text-neutral-100 text-xl m-0'>Filme</Text>
+              </View>
+            }
+            {!media.is_movie &&
+              <View className="flex flex-row gap-4 items-center">
+                <Icon as={TvIcon} color={primary} className="text-primary-light" size={24}></Icon>
+                <Text className='text-neutral-100 text-xl m-0'>Série/TV</Text>
+              </View>
+            }
+
+            <View className="flex flex-col gap-2">
+              <Text className="m-0 text-4xl font-bold text-white">{media.title}</Text>
+              {media.title !== media.original_title &&
+                <Text className='text-neutral-100 text-xl italic m-0'>{media.original_title}</Text>
+              }
+            </View>
 
             <View className="flex flex-row flex-wrap gap-4">
               {media.genres?.map((genre: string) => (
                 <Badge key={genre} size="lg" variant="solid" action="muted" className="rounded-full px-4 w-fit">
-                  <BadgeText>{genre}</BadgeText>
+                  <BadgeText>{generosJsonInverse[genre]}</BadgeText>
                 </Badge>
               ))}
             </View>
 
-            <View className="flex flex-row gap-2">
-              <Icon as={CalendarIcon} />
-              <Text className="m-0 text-neutral-100 w-fit">
-                {formatarData(media.release_date, media.is_movie ? "filme" : "serie")}
-              </Text>
+            <View className="flex flex-row gap-x-6 gap-y-2 flex-wrap">
+              <View className="flex flex-row gap-2">
+                <Icon as={CalendarIcon} className="text-neutral-100" />
+                <Text className="m-0 text-neutral-100 w-fit">
+                  {formatarData(media.release_date, media.is_movie ? "filme" : "serie")}
+                </Text>
+              </View>
+              {media.is_movie && media.runtime &&
+                <View className="flex flex-row gap-2">
+                  <Icon as={ClockIcon} className="text-neutral-100" />
+                  <Text className="m-0 text-neutral-100 w-fit">
+                    {formatarDuracao(media.runtime)}
+                  </Text>
+                </View>
+              }
+              {!media.is_movie && media.number_of_episodes && media.number_of_seasons &&
+                <View className="flex flex-row gap-2">
+                  <Icon as={CalendarIcon} className="text-neutral-100" />
+                  <Text className="m-0 text-neutral-100 w-fit">
+                    {formatarTemporadas(media.number_of_seasons, media.number_of_episodes)}
+                  </Text>
+                </View>
+              }
             </View>
           </View>
 
@@ -362,18 +428,48 @@ export default function Detalhe() {
             <Text className="text-white text-base">{media.description}</Text>
           </View>
 
-          <View className="flex flex-col gap-2">
-            <Text className="m-0 text-lg font-bold text-white">Elenco</Text>
+          {media?.cast.filter(item => item.role === "Directing" || item.role === 'Creator').length > 0 &&
+            <View className="flex flex-col gap-2">
+              <Text className="m-0 text-lg font-bold text-white">Direção</Text>
+              <View className="flex flex-row gap-x-8 gap-y-2 flex-wrap">
+                {Object.entries(media.cast
+                  .filter(item => item.role === "Directing" || item.role === "Creator")
+                  .reduce((acc, item: CastMember) => {
+                    if (!acc[item.name!]) acc[item.name!] = [];
+                    acc[item.name!].push(item.character_name!);
+                    return acc;
+                  }, {} as Record<string, string[]>))
+                  .map(([name, characters]) => (
+                    <View key={name} className="flex flex-col gap-1">
+                      <Text className="text-white font-bold">
+                        {name}
+                      </Text>
+                      <Text className="text-neutral-100">
+                        {characters.join(", ")}
+                      </Text>
+                    </View>
+                  ))}
+              </View>
 
-            <FlashList
-              data={media.cast || []}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              estimatedItemSize={200}
-              renderItem={renderCastItem}
-              keyExtractor={(item) => String(item.name)}
-            />
-          </View>
+            </View>
+          }
+
+
+          {media?.cast.filter(item => item.role === "actor").length > 0 &&
+            <View className="flex flex-col gap-2">
+              <Text className="m-0 text-lg font-bold text-white">Elenco</Text>
+
+              <FlashList
+                data={media.cast.filter(item => item.role === 'actor') || []}
+                horizontal
+                className="flex flex-row gap-2"
+                showsHorizontalScrollIndicator={false}
+                estimatedItemSize={200}
+                renderItem={renderCastItem}
+                keyExtractor={(item) => String(`${item.name} - ${item.character_name}`)}
+              />
+            </View>
+          }
         </LinearGradient>
       </Animated.View>
     );
@@ -381,7 +477,7 @@ export default function Detalhe() {
   HeaderComponent.displayName = "HeaderComponent";
 
   const renderHeader = useCallback(() => {
-    return <HeaderComponent media={media} handleRatingChange={handleRatingChange} />
+    return <HeaderComponent media={media!} handleRatingChange={handleRatingChange} />
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [media]);
 
@@ -438,8 +534,8 @@ const CastCard = React.memo(({ item }: { item: CastMember }) => (
       placeholder="B0JH:g-;fQ_3fQfQ"
     />
     <View className="flex flex-col px-4 pb-4 h-20">
-      <Text className="text-white font-bold text-base">{item.name}</Text>
-      <Text className="text-neutral-100 text-base">{item.character_name}</Text>
+      <Text className="text-white font-bold text-base" numberOfLines={1}>{item.name}</Text>
+      <Text className="text-neutral-100 text-base" numberOfLines={2}>{item.character_name}</Text>
     </View>
   </View>
 ));
