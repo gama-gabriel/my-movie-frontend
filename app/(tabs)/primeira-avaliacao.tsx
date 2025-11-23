@@ -2,7 +2,7 @@ import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import React, { memo, Ref, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Text, TextInput, TextInputProps, ActivityIndicator } from 'react-native'
 import { AnimatedButton } from '../components/AnimatedButton';
-import { danger, neutral900, primary, primaryDark, primaryLight } from '@/constants/constants';
+import { danger, neutral100, neutral900, primary, primaryDark, primaryLight } from '@/constants/constants';
 import { ButtonIcon, ButtonText } from '@/components/ui/button';
 import { ArrowDown01Icon, ArrowDown10Icon, ArrowDownUpIcon, EraserIcon, SearchIcon, XIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming, } from 'react-native-reanimated';
@@ -319,7 +319,7 @@ const HeaderList = ({
             onValueChange={(value) => {
               setSortBy(value)
             }}
-            defaultValue={sortAtual === 'title' ? 'Nome' : 'Data de lançamento'}
+            defaultValue={sortAtual === 'title' ? 'Nome' : sortAtual === 'release_date' ? 'Data de lançamento' : 'Popularidade'}
           >
             <SelectTrigger variant="outline" size="md">
               <SelectInput placeholder="Ordenarr por" />
@@ -331,6 +331,7 @@ const HeaderList = ({
                 <SelectDragIndicatorWrapper>
                   <SelectDragIndicator />
                 </SelectDragIndicatorWrapper>
+                <SelectItem label="Popularidade" value="popularity" />
                 <SelectItem label="Nome" value="title" />
                 <SelectItem label="Data de lançamento" value="release_date" />
                 <View className='h-4'></View>
@@ -349,19 +350,19 @@ const HeaderList = ({
           >
             {ordemAtual === 'asc' &&
               <>
-                <ButtonText className='font-normal'>
+                <ButtonText className='font-normal text-neutral-100'>
                   Crescente
                 </ButtonText>
-                <ButtonIcon as={ArrowDown01Icon}></ButtonIcon>
+                <ButtonIcon as={ArrowDown01Icon} color={neutral100}></ButtonIcon>
               </>
             }
 
             {ordemAtual === 'desc' &&
               <>
-                <ButtonText className='font-normal'>
+                <ButtonText className='font-normal text-neutral-100'>
                   Descrescente
                 </ButtonText>
-                <ButtonIcon as={ArrowDown10Icon}></ButtonIcon>
+                <ButtonIcon as={ArrowDown10Icon} color={neutral100}></ButtonIcon>
               </>
             }
           </AnimatedButton>
@@ -382,8 +383,8 @@ const PrimeiraAvaliacao = () => {
   const [termoBusca, setTermoBusca] = useState('')
   const [termoBuscaConfirmado, setTermoBuscaConfirmado] = useState('')
   const [queryReady, setQueryReady] = useState(false)
-  const [sortBy, setSortBy] = useState('title')
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc')
+  const [sortBy, setSortBy] = useState('popularity')
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc')
 
   const inputRef = useRef<TextInput>(null);
 
