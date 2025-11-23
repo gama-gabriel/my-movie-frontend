@@ -11,6 +11,7 @@ import { Alert, AlertIcon, AlertText } from '@/components/ui/alert'
 import { primary, primaryDark } from '@/constants/constants'
 import { AnimatedButton } from '../components/AnimatedButton'
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
+import { formatarErroClerk } from '@/utils/FormatarErrosClerk'
 
 const AnimatedAlert = Animated.createAnimatedComponent(Alert);
 
@@ -88,7 +89,7 @@ export default function Page() {
       } catch (err: any) {
         // See https://clerk.com/docs/custom-flows/error-handling
         // for more info on error handling
-        setMensagemErro(err.errors?.[0]?.longMessage || 'Ocorreu um erro. Tente novamente.')
+        setMensagemErro(formatarErroClerk(err))
         console.log(err.errors[0]?.code)
       } finally {
         setLoading(false)

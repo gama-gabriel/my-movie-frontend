@@ -12,6 +12,7 @@ import { AnimatedButton } from '../components/AnimatedButton'
 import { primary, primaryDark } from '@/constants/constants'
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { formatarErroClerk } from '@/utils/FormatarErrosClerk'
 
 const AnimatedAlert = Animated.createAnimatedComponent(Alert);
 
@@ -119,7 +120,9 @@ export default function Cadastro() {
     } catch (err: any) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
-      setMensagemErroCadastro(err.errors[0]?.longMessage || 'Ocorreu um erro desconhecido. Tente novamente.')
+      console.log("erro formatado", formatarErroClerk(err))
+      setMensagemErroCadastro(formatarErroClerk(err))
+      console.log(err.errors[0]?.code)
     } finally {
       setLoading(false)
     }
@@ -158,7 +161,8 @@ export default function Cadastro() {
     } catch (err: any) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
-      setMensagemErroCodigo(err.errors[0]?.longMessage || 'Ocorreu um erro desconhecido. Tente novamente.')
+      setMensagemErroCodigo(formatarErroClerk(err))
+      console.log(err.errors[0]?.code)
     } finally {
       setLoading(false)
     }

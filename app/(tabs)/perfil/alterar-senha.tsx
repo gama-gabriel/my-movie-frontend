@@ -11,6 +11,7 @@ import { EyeIcon, EyeOffIcon, InfoIcon } from 'lucide-react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { primary, primaryDark } from '@/constants/constants';
 import { useToastVariant } from '@/hooks/useToastVariant';
+import { formatarErroClerk } from '@/utils/FormatarErrosClerk';
 
 const AnimatedAlert = Animated.createAnimatedComponent(Alert);
 
@@ -88,7 +89,7 @@ const AlterarSenha = () => {
       toast.show("Senha alterada com sucesso!", "success")
 
     } catch (err: any) {
-      setMensagemErro(err.errors[0]?.longMessage || 'Ocorreu um erro desconhecido. Tente novamente.')
+      setMensagemErro(formatarErroClerk(err))
       console.log(err.errors[0]?.code)
       console.error('Error updating password:', err);
     } finally {

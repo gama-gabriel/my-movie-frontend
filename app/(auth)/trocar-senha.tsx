@@ -11,6 +11,7 @@ import { AnimatedButton } from "../components/AnimatedButton";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { router, useLocalSearchParams } from "expo-router";
 import { useToastVariant } from "@/hooks/useToastVariant";
+import { formatarErroClerk } from "@/utils/FormatarErrosClerk";
 
 const AnimatedAlert = Animated.createAnimatedComponent(Alert);
 
@@ -95,7 +96,8 @@ export default function ForgotPasswordScreen() {
       });
       setStep("verify");
     } catch (err: any) {
-      setMensagemErroEmail(err.errors?.[0]?.longMessage || "Ocorreu um erro. Tente novamente.");
+      setMensagemErroEmail(formatarErroClerk(err));
+      console.log(err.errors[0]?.code)
     } finally {
       setLoading(false)
     }
@@ -127,7 +129,8 @@ export default function ForgotPasswordScreen() {
         router.replace('/(tabs)/perfil')
       }
     } catch (err: any) {
-      setMensagemErro(err.errors?.[0]?.longMessage || "Ocorreu um erro. Tente novamente.");
+      setMensagemErro(formatarErroClerk(err));
+      console.log(err.errors[0]?.code)
     } finally {
       setLoading(false)
     }
