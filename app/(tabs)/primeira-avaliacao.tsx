@@ -4,7 +4,7 @@ import { View, Text, TextInput, TextInputProps, ActivityIndicator } from 'react-
 import { AnimatedButton } from '../components/AnimatedButton';
 import { danger, neutral900, primary, primaryDark, primaryLight } from '@/constants/constants';
 import { ButtonIcon, ButtonText } from '@/components/ui/button';
-import { ArrowDown01Icon, ArrowDown10Icon, ArrowDownUpIcon, EraserIcon, SearchIcon } from 'lucide-react-native';
+import { ArrowDown01Icon, ArrowDown10Icon, ArrowDownUpIcon, EraserIcon, SearchIcon, XIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming, } from 'react-native-reanimated';
 import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
 import { BuscaRequest, FilterCondition, FilterField } from '@/types/search.types';
@@ -533,6 +533,11 @@ const PrimeiraAvaliacao = () => {
                 autoCapitalize='none'
                 placeholder='Buscar filmes, séries, atores'
               />
+              <InputSlot className="pr-4" onPress={() => {
+                setTermoBusca('')
+              }}>
+                <InputIcon as={XIcon} />
+              </InputSlot>
             </Input>
           </View>
 

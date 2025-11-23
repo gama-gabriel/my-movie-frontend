@@ -2,9 +2,9 @@ import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
 import React, { memo, Ref, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Text, Pressable, TextInput, TextInputProps, ActivityIndicator } from 'react-native'
 import { AnimatedButton } from '../components/AnimatedButton';
-import { danger, generos, generosJson, neutral700, neutral900, primary, primaryDark, primaryLight } from '@/constants/constants';
+import { danger, generos, generosJson, neutral100, neutral700, neutral900, primary, primaryDark, primaryLight } from '@/constants/constants';
 import { ButtonIcon, ButtonSpinner, ButtonText } from '@/components/ui/button';
-import { ArrowDown01Icon, ArrowDown10Icon, ArrowDownUpIcon, BookmarkIcon, CircleXIcon, EraserIcon, FrownIcon, SearchIcon, SlidersHorizontalIcon } from 'lucide-react-native';
+import { ArrowDown01Icon, ArrowDown10Icon, ArrowDownUpIcon, BookmarkIcon, CircleXIcon, EraserIcon, FrownIcon, SearchIcon, SlidersHorizontalIcon, XIcon } from 'lucide-react-native';
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming, } from 'react-native-reanimated';
 import { ScrollView } from 'react-native-gesture-handler';
 import { InfiniteData, useInfiniteQuery } from '@tanstack/react-query';
@@ -422,10 +422,10 @@ const HeaderList = ({
             onValueChange={(value) => {
               setSortBy(value)
             }}
-            defaultValue={sortAtual === 'title' ? 'Nome' : 'Data de lançamento'}
+            defaultValue={sortAtual === 'title' ? 'Nome' : sortAtual === 'release_date' ? 'Data de lançamento' : 'Popularidade'}
           >
             <SelectTrigger variant="outline" size="md">
-              <SelectInput placeholder="Ordenarr por" />
+              <SelectInput placeholder="Ordenar por" />
               <SelectIcon className="mr-3" as={ArrowDownUpIcon} />
             </SelectTrigger>
             <SelectPortal>
@@ -434,6 +434,7 @@ const HeaderList = ({
                 <SelectDragIndicatorWrapper>
                   <SelectDragIndicator />
                 </SelectDragIndicatorWrapper>
+                <SelectItem label="Popularidade" value="popularity" />
                 <SelectItem label="Nome" value="title" />
                 <SelectItem label="Data de lançamento" value="release_date" />
                 <View className='h-4'></View>
@@ -452,19 +453,19 @@ const HeaderList = ({
           >
             {ordemAtual === 'asc' &&
               <>
-                <ButtonText className='font-normal'>
+                <ButtonText className='font-normal text-neutral-100'>
                   Crescente
                 </ButtonText>
-                <ButtonIcon as={ArrowDown01Icon}></ButtonIcon>
+                <ButtonIcon as={ArrowDown01Icon} color={neutral100}></ButtonIcon>
               </>
             }
 
             {ordemAtual === 'desc' &&
               <>
-                <ButtonText className='font-normal'>
+                <ButtonText className='font-normal text-neutral-100'>
                   Descrescente
                 </ButtonText>
-                <ButtonIcon as={ArrowDown10Icon}></ButtonIcon>
+                <ButtonIcon as={ArrowDown10Icon} color={neutral100}></ButtonIcon>
               </>
             }
           </AnimatedButton>
@@ -487,8 +488,8 @@ const Pesquisa = () => {
   const [termoBuscaConfirmado, setTermoBuscaConfirmado] = useState('')
   const [filtrosSelecionados, setFiltrosSelecionados] = useState<string[]>([])
   const [queryReady, setQueryReady] = useState(false)
-  const [sortBy, setSortBy] = useState('title')
-  const [order, setOrder] = useState<'asc' | 'desc'>('asc')
+  const [sortBy, setSortBy] = useState('popularity')
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc')
 
   const inputRef = useRef<TextInput>(null);
 
@@ -696,6 +697,11 @@ const Pesquisa = () => {
                 autoCapitalize='none'
                 placeholder='Buscar filmes, séries, atores'
               />
+              <InputSlot className="pr-4" onPress={() => {
+                setTermoBusca('')
+              }}>
+                <InputIcon as={XIcon} />
+              </InputSlot>
             </Input>
           </View>
 
